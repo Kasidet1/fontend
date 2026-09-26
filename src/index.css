@@ -1,0 +1,14 @@
+/* 1. ต้องเอา @import ขึ้นบรรทัดแรกสุดเสมอ */
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+/* 2. ตามด้วยคำสั่งของ Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 3. ส่วนการตั้งค่าอื่นๆ เอาไว้ล่างสุด */
+body {
+  font-family: 'Sarabun', sans-serif;
+  background-color: #f4f7f6;
+  margin: 0;
+}
