@@ -1,1040 +1,3946 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import {
-  BarChart3, LogOut, Menu, X,
-  Factory, FileSearch,
-  ChevronRight, User, MapPin, Phone,
-  Building2, Info, Filter,
-  CheckCircle2, Clock, Calendar, GraduationCap,
-  ShieldAlert, ClipboardCheck, Users, Shield, Eye, EyeOff, Download
-} from 'lucide-react';
+LayoutDashboard,
+Building2,
+FileText,
+Users,
+User,
+LogOut,
+Search,
+RefreshCw,
+Pencil,
+Save,
+X,
+CheckCircle2,
+Clock3,
+XCircle,
+MapPin,
+BriefcaseBusiness,
+GraduationCap,
+Phone,
+Mail,
+CalendarDays,
+ClipboardList,
+ShieldCheck,
+Upload,
+Eye,
+Trash2,
+Menu,
+ChevronDown,
+AlertCircle,
+} from "lucide-react";
 
-// --- Configuration ---
+// ============================================================
+// API
+// ============================================================
+
 const API_BASE_URL = "https://coop-backend-02.vercel.app";
 
-// สร้างตัวแปรสำหรับยิง API ทั่วไป
 const api = axios.create({
-  baseURL: API_BASE_URL,
+baseURL: API_BASE_URL,
+headers: {
+"Content-Type": "application/json",
+},
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+api.interceptors.request.use(
+(config) => {
+const token = localStorage.getItem("token");
 
-  if (token) {
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+```
+if (token) {
+  config.headers.Authorization = `Bearer ${token}`;
+}
 
-  return config;
-});
+return config;
+```
 
-// --- Component โลโก้หุ่นยนต์เฟืองสีแดง ---
-const RobotLogo = ({ className = "w-10 h-10" }) => (
-  <svg className={className} viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M482.3 221.7l-35.9-5.9c-3.9-15.6-9.9-30.4-17.7-44l21.3-29.4c6.3-8.7 5.1-20.9-2.9-28.2l-32.9-30c-7.9-7.2-20.2-7.2-28 0l-22.5 19.3c-14.1-8.9-29.6-15.6-46.1-19.8l-7-35.7C312 36.5 302 28 290.3 28h-44.5c-11.7 0-21.7 8.5-23.4 20l-7 35.7c-16.5 4.2-32 10.9-46.1 19.8L146.8 84.2c-7.8-7.2-20.1-7.2-28 0l-32.9 30c-8 7.3-9.2 19.5-2.9 28.2l21.3 29.4c-7.8 13.6-13.8 28.4-17.7 44l-35.9 5.9C39 223.4 30.5 233.1 30.5 244.7v44.5c0 11.6 8.5 21.3 20.2 23l35.9 5.9c3.9 15.6 9.9 30.4 17.7 44l-21.3 29.4c-6.3 8.7-5.1 20.9 2.9 28.2l32.9 30c7.9 7.2 20.2 7.2 28 0l22.5-19.3c14.1 8.9 29.6 15.6 46.1 19.8l7 35.7c1.7 11.5 11.7 20 23.4 20h44.5c11.7 0 21.7-8.5 23.4-20l7-35.7c16.5-4.2 32-10.9 46.1-19.8l22.5 19.3c7.8 7.2 20.1 7.2 28 0l32.9-30c8-7.3 9.2-19.5 2.9-28.2l-21.3-29.4c7.8-13.6 13.8-28.4 17.7-44l35.9-5.9c11.7-1.7 20.2-11.4 20.2-23v-44.5c0-11.6-8.5-21.3-20.2-23z" fill="#ff4d4d" stroke="#000" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round"/>
-    <circle cx="256" cy="256" r="135" fill="#fff" stroke="#000" strokeWidth="16"/>
-    <rect x="180" y="210" width="152" height="100" rx="25" fill="#e0e0e0" stroke="#000" strokeWidth="16"/>
-    <circle cx="225" cy="260" r="14" fill="#000"/>
-    <circle cx="287" cy="260" r="14" fill="#000"/>
-    <rect x="148" y="235" width="32" height="50" rx="16" fill="#b0b0b0" stroke="#000" strokeWidth="16"/>
-    <rect x="332" y="235" width="32" height="50" rx="16" fill="#b0b0b0" stroke="#000" strokeWidth="16"/>
-    <line x1="256" y1="210" x2="256" y2="175" stroke="#000" strokeWidth="16" strokeLinecap="round"/>
-    <circle cx="256" cy="160" r="18" fill="#ff4d4d" stroke="#000" strokeWidth="12"/>
-    <line x1="230" y1="290" x2="282" y2="290" stroke="#000" strokeWidth="8" strokeLinecap="round"/>
-  </svg>
+},
+(error) => Promise.reject(error)
 );
 
-// --- 1. ส่วนแสดงข้อมูลสถานประกอบการ ---
-const CompanyManagement = () => {
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCompany, setSelectedCompany] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const [filterIndustry, setFilterIndustry] = useState('All');
+// ============================================================
+// HELPERS
+// ============================================================
 
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get('/companies', {
-          params: searchTerm ? { search: searchTerm } : {}
-        });
-        const data = Array.isArray(res.data) ? res.data : (res.data.companies || []);
-        setCompanies(data);
-      } catch (err) {
-        console.error("Fetch Error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+const getErrorMessage = (error, fallback = "เกิดข้อผิดพลาด") => {
+if (error?.response?.data?.detail) {
+if (Array.isArray(error.response.data.detail)) {
+return error.response.data.detail
+.map((item) => item?.msg || "ข้อมูลไม่ถูกต้อง")
+.join(", ");
+}
 
-    const delayDebounceFn = setTimeout(() => {
-      fetchCompanies();
-    }, 400);
+```
+return String(error.response.data.detail);
+```
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
+}
 
-  const filteredCompanies = companies.filter(company => {
-    if (filterIndustry === 'All') return true;
-    if (filterIndustry === 'Industry') return company.industry?.includes('อุตสาหกรรม') || company.industry?.toLowerCase().includes('manufacture');
-    if (filterIndustry === 'IT') return company.industry?.includes('เทคโนโลยี') || company.industry?.toLowerCase().includes('it') || company.industry?.toLowerCase().includes('tech');
-    if (filterIndustry === 'Other') return !company.industry;
-    return true;
+if (error?.response?.data?.message) {
+return String(error.response.data.message);
+}
+
+if (error?.message) {
+return error.message;
+}
+
+return fallback;
+};
+
+const normalizeArray = (data) => {
+if (Array.isArray(data)) return data;
+
+if (Array.isArray(data?.items)) return data.items;
+
+if (Array.isArray(data?.data)) return data.data;
+
+return [];
+};
+
+const formatDate = (value) => {
+if (!value) return "-";
+
+try {
+return new Date(value).toLocaleDateString("th-TH", {
+year: "numeric",
+month: "long",
+day: "numeric",
+});
+} catch {
+return value;
+}
+};
+
+const statusText = (status) => {
+switch (String(status || "").toLowerCase()) {
+case "approved":
+return "อนุมัติแล้ว";
+
+```
+case "pending":
+  return "รออนุมัติ";
+
+case "rejected":
+  return "ไม่อนุมัติ";
+
+default:
+  return status || "-";
+```
+
+}
+};
+
+const statusClass = (status) => {
+switch (String(status || "").toLowerCase()) {
+case "approved":
+return "status-approved";
+
+```
+case "pending":
+  return "status-pending";
+
+case "rejected":
+  return "status-rejected";
+
+default:
+  return "status-default";
+```
+
+}
+};
+
+// ============================================================
+// GLOBAL STYLES
+// ============================================================
+
+const styles = `
+
+* {
+  box-sizing: border-box;
+  }
+
+body {
+margin: 0;
+font-family: 'Sarabun', Arial, sans-serif;
+background: #f5f6f8;
+color: #202124;
+}
+
+button,
+input,
+select,
+textarea {
+font-family: inherit;
+}
+
+button {
+cursor: pointer;
+}
+
+.app-shell {
+min-height: 100vh;
+display: flex;
+background: #f5f6f8;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+width: 260px;
+min-height: 100vh;
+background: linear-gradient(180deg, #800000 0%, #4a0000 100%);
+color: white;
+position: fixed;
+left: 0;
+top: 0;
+bottom: 0;
+z-index: 100;
+display: flex;
+flex-direction: column;
+}
+
+.brand {
+padding: 26px 22px;
+border-bottom: 1px solid rgba(255,255,255,.15);
+}
+
+.brand-title {
+font-size: 22px;
+font-weight: 700;
+}
+
+.brand-subtitle {
+margin-top: 3px;
+font-size: 13px;
+opacity: .75;
+}
+
+.sidebar-menu {
+padding: 20px 12px;
+flex: 1;
+}
+
+.menu-title {
+font-size: 12px;
+opacity: .6;
+padding: 0 12px 10px;
+}
+
+.menu-button {
+width: 100%;
+border: 0;
+background: transparent;
+color: rgba(255,255,255,.82);
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 14px;
+border-radius: 10px;
+margin-bottom: 5px;
+text-align: left;
+font-size: 15px;
+transition: .2s;
+}
+
+.menu-button:hover {
+background: rgba(255,255,255,.10);
+color: white;
+}
+
+.menu-button.active {
+background: rgba(255,255,255,.16);
+color: white;
+font-weight: 600;
+}
+
+.sidebar-footer {
+padding: 16px;
+border-top: 1px solid rgba(255,255,255,.15);
+}
+
+.user-mini {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.user-mini-avatar {
+width: 38px;
+height: 38px;
+border-radius: 50%;
+background: rgba(255,255,255,.16);
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.user-mini-info {
+min-width: 0;
+flex: 1;
+}
+
+.user-mini-name {
+font-size: 14px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.user-mini-role {
+font-size: 12px;
+opacity: .65;
+}
+
+.logout-button {
+width: 100%;
+margin-top: 13px;
+border: 1px solid rgba(255,255,255,.2);
+background: transparent;
+color: white;
+border-radius: 8px;
+padding: 9px;
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 8px;
+}
+
+/* MAIN */
+
+.main-area {
+margin-left: 260px;
+width: calc(100% - 260px);
+min-height: 100vh;
+}
+
+.topbar {
+height: 70px;
+background: white;
+border-bottom: 1px solid #e6e7e9;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 0 28px;
+position: sticky;
+top: 0;
+z-index: 50;
+}
+
+.topbar-left {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.mobile-menu-button {
+display: none;
+border: 0;
+background: transparent;
+}
+
+.page-title {
+font-size: 21px;
+font-weight: 700;
+}
+
+.page-subtitle {
+font-size: 13px;
+color: #777;
+}
+
+.top-user {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.top-avatar {
+width: 40px;
+height: 40px;
+border-radius: 50%;
+background: #f0e1e1;
+color: #800000;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.content {
+padding: 28px;
+max-width: 1600px;
+margin: auto;
+}
+
+/* CARDS */
+
+.stats-grid {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 18px;
+margin-bottom: 25px;
+}
+
+.stat-card {
+background: white;
+border: 1px solid #e8e8e8;
+border-radius: 14px;
+padding: 20px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+.stat-left {
+display: flex;
+flex-direction: column;
+gap: 5px;
+}
+
+.stat-label {
+color: #777;
+font-size: 14px;
+}
+
+.stat-number {
+font-size: 30px;
+font-weight: 700;
+}
+
+.stat-icon {
+width: 48px;
+height: 48px;
+border-radius: 12px;
+background: #f5e9e9;
+color: #800000;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+/* PANELS */
+
+.panel {
+background: white;
+border: 1px solid #e7e7e7;
+border-radius: 14px;
+padding: 22px;
+margin-bottom: 20px;
+}
+
+.panel-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 15px;
+margin-bottom: 20px;
+}
+
+.panel-title {
+font-size: 19px;
+font-weight: 700;
+}
+
+.panel-description {
+color: #777;
+font-size: 13px;
+margin-top: 3px;
+}
+
+/* BUTTONS */
+
+.primary-button,
+.secondary-button,
+.danger-button {
+border-radius: 9px;
+padding: 10px 15px;
+border: 1px solid transparent;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+font-size: 14px;
+}
+
+.primary-button {
+background: #800000;
+color: white;
+}
+
+.primary-button:hover {
+background: #650000;
+}
+
+.secondary-button {
+background: white;
+color: #444;
+border-color: #dcdcdc;
+}
+
+.secondary-button:hover {
+background: #f7f7f7;
+}
+
+.danger-button {
+background: #fff0f0;
+color: #b42318;
+border-color: #ffd1d1;
+}
+
+/* FORMS */
+
+.form-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 17px;
+}
+
+.form-group {
+display: flex;
+flex-direction: column;
+gap: 7px;
+}
+
+.form-group.full {
+grid-column: 1 / -1;
+}
+
+.form-label {
+font-size: 14px;
+font-weight: 600;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+width: 100%;
+border: 1px solid #d9d9d9;
+border-radius: 9px;
+padding: 11px 13px;
+outline: none;
+background: white;
+font-size: 14px;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+border-color: #800000;
+box-shadow: 0 0 0 3px rgba(128,0,0,.08);
+}
+
+.form-textarea {
+min-height: 100px;
+resize: vertical;
+}
+
+.form-actions {
+display: flex;
+gap: 10px;
+margin-top: 20px;
+}
+
+/* SEARCH */
+
+.search-row {
+display: flex;
+gap: 10px;
+margin-bottom: 18px;
+flex-wrap: wrap;
+}
+
+.search-box {
+flex: 1;
+min-width: 220px;
+position: relative;
+}
+
+.search-box svg {
+position: absolute;
+left: 12px;
+top: 50%;
+transform: translateY(-50%);
+color: #888;
+}
+
+.search-box input {
+padding-left: 40px;
+}
+
+.filter-select {
+min-width: 160px;
+}
+
+/* COMPANY */
+
+.company-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 18px;
+}
+
+.company-card {
+border: 1px solid #e5e5e5;
+border-radius: 13px;
+padding: 18px;
+background: white;
+transition: .2s;
+}
+
+.company-card:hover {
+border-color: #c7a1a1;
+box-shadow: 0 4px 16px rgba(0,0,0,.05);
+}
+
+.company-name {
+font-size: 17px;
+font-weight: 700;
+margin-bottom: 12px;
+}
+
+.company-line {
+display: flex;
+gap: 8px;
+color: #666;
+font-size: 13px;
+margin: 8px 0;
+}
+
+.company-line svg {
+color: #800000;
+flex-shrink: 0;
+}
+
+.company-tags {
+display: flex;
+gap: 6px;
+flex-wrap: wrap;
+margin-top: 14px;
+}
+
+.company-tag {
+padding: 4px 8px;
+border-radius: 20px;
+background: #f6eeee;
+color: #800000;
+font-size: 12px;
+}
+
+/* TABLE */
+
+.table-wrap {
+overflow-x: auto;
+}
+
+.data-table {
+width: 100%;
+border-collapse: collapse;
+min-width: 700px;
+}
+
+.data-table th {
+background: #fafafa;
+text-align: left;
+font-size: 13px;
+color: #666;
+font-weight: 600;
+padding: 13px 12px;
+border-bottom: 1px solid #e5e5e5;
+}
+
+.data-table td {
+padding: 14px 12px;
+border-bottom: 1px solid #eeeeee;
+font-size: 14px;
+}
+
+.data-table tr:last-child td {
+border-bottom: 0;
+}
+
+/* STATUS */
+
+.status {
+display: inline-flex;
+align-items: center;
+gap: 5px;
+padding: 5px 9px;
+border-radius: 20px;
+font-size: 12px;
+font-weight: 600;
+}
+
+.status-approved {
+background: #e9f8ef;
+color: #16794c;
+}
+
+.status-pending {
+background: #fff5dd;
+color: #9a6700;
+}
+
+.status-rejected {
+background: #ffeded;
+color: #b42318;
+}
+
+.status-default {
+background: #eee;
+color: #666;
+}
+
+/* PROFILE */
+
+.profile-header {
+background: linear-gradient(135deg, #800000, #4a0000);
+color: white;
+border-radius: 14px;
+padding: 25px;
+display: flex;
+align-items: center;
+gap: 18px;
+margin-bottom: 20px;
+}
+
+.profile-avatar {
+width: 75px;
+height: 75px;
+border-radius: 50%;
+background: rgba(255,255,255,.18);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 28px;
+font-weight: 700;
+}
+
+.profile-name {
+font-size: 23px;
+font-weight: 700;
+}
+
+.profile-role {
+opacity: .75;
+font-size: 14px;
+}
+
+/* TEACHER */
+
+.teacher-card {
+border: 1px solid #e4e4e4;
+border-radius: 13px;
+padding: 20px;
+}
+
+.teacher-name {
+font-size: 18px;
+font-weight: 700;
+}
+
+.teacher-detail {
+color: #666;
+font-size: 14px;
+margin-top: 8px;
+}
+
+/* EMPTY */
+
+.empty-state {
+text-align: center;
+padding: 55px 20px;
+color: #888;
+}
+
+.empty-state svg {
+margin-bottom: 10px;
+opacity: .55;
+}
+
+/* ALERT */
+
+.alert-box {
+border-radius: 10px;
+padding: 12px 14px;
+display: flex;
+align-items: flex-start;
+gap: 9px;
+margin-bottom: 18px;
+font-size: 14px;
+}
+
+.alert-error {
+background: #fff0f0;
+border: 1px solid #ffd0d0;
+color: #a51d1d;
+}
+
+.alert-success {
+background: #edf9f2;
+border: 1px solid #c9ecd7;
+color: #176c40;
+}
+
+/* LOADING */
+
+.loading {
+padding: 50px;
+text-align: center;
+color: #777;
+}
+
+.spinner {
+width: 30px;
+height: 30px;
+border: 3px solid #eee;
+border-top-color: #800000;
+border-radius: 50%;
+animation: spin 1s linear infinite;
+margin: 0 auto 12px;
+}
+
+@keyframes spin {
+to {
+transform: rotate(360deg);
+}
+}
+
+/* LOGIN */
+
+.login-page {
+min-height: 100vh;
+background: linear-gradient(135deg, #800000, #280000);
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 20px;
+}
+
+.login-card {
+width: 100%;
+max-width: 430px;
+background: white;
+border-radius: 18px;
+padding: 35px;
+box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+
+.login-logo {
+width: 62px;
+height: 62px;
+border-radius: 15px;
+background: #800000;
+color: white;
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 0 auto 15px;
+}
+
+.login-title {
+text-align: center;
+font-size: 25px;
+font-weight: 700;
+}
+
+.login-subtitle {
+text-align: center;
+color: #777;
+font-size: 14px;
+margin: 5px 0 25px;
+}
+
+.login-form {
+display: flex;
+flex-direction: column;
+gap: 15px;
+}
+
+.login-button {
+width: 100%;
+border: 0;
+border-radius: 9px;
+padding: 13px;
+background: #800000;
+color: white;
+font-size: 16px;
+font-weight: 600;
+margin-top: 5px;
+}
+
+.login-button:disabled {
+opacity: .6;
+cursor: not-allowed;
+}
+
+/* MOBILE */
+
+@media (max-width: 1100px) {
+.company-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+
+.stats-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+}
+
+@media (max-width: 800px) {
+.sidebar {
+transform: translateX(-100%);
+transition: .25s;
+}
+
+.sidebar.open {
+transform: translateX(0);
+}
+
+.main-area {
+margin-left: 0;
+width: 100%;
+}
+
+.mobile-menu-button {
+display: block;
+}
+
+.content {
+padding: 18px;
+}
+
+.form-grid {
+grid-template-columns: 1fr;
+}
+
+.form-group.full {
+grid-column: auto;
+}
+
+.company-grid {
+grid-template-columns: 1fr;
+}
+}
+
+@media (max-width: 550px) {
+.stats-grid {
+grid-template-columns: 1fr;
+}
+
+.top-user {
+display: none;
+}
+
+.panel {
+padding: 16px;
+}
+
+.profile-header {
+padding: 18px;
+}
+
+.profile-name {
+font-size: 19px;
+}
+}
+`;
+
+// ============================================================
+// LOGIN PAGE
+// ============================================================
+
+function LoginPage({ onLogin }) {
+const [username, setUsername] = useState("");
+const [password, setPassword] = useState("");
+const [selectedRole, setSelectedRole] = useState("student");
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState("");
+
+const handleSubmit = async (event) => {
+event.preventDefault();
+
+```
+setError("");
+
+if (!username.trim() || !password.trim()) {
+  setError("กรุณากรอก Username และ Password");
+  return;
+}
+
+try {
+  setLoading(true);
+
+  const response = await api.post("/login", {
+    username: username.trim(),
+    password,
   });
 
-  return (
-    <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 relative">
-        <h3 className="text-[#800000] font-black flex items-center gap-2 text-lg">
-          <Factory size={24}/> รายชื่อสถานประกอบการ
-        </h3>
-        
-        <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-          <div className="relative flex-1 md:flex-none">
-            <input
-              type="text"
-              placeholder="ค้นหาบริษัท (เช่น CP)..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full md:w-64 px-4 py-2 text-sm bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-[#800000] font-bold"
-            />
-          </div>
-          
-          <div className="relative">
-            <button
-              onClick={() => setShowFilterMenu(!showFilterMenu)}
-              className={`p-2.5 rounded-xl border transition-all flex items-center justify-center ${showFilterMenu ? 'bg-[#800000] text-white border-[#800000]' : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'}`}
-            >
-              <Filter size={18} />
-            </button>
+  const data = response.data || {};
 
-            {showFilterMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
-                <p className="px-4 py-1.5 text-[10px] font-black text-gray-400 uppercase tracking-wider">ประเภทธุรกิจ</p>
-                {[
-                  { id: 'All', name: 'ทั้งหมด' },
-                  { id: 'Industry', name: 'โรงงาน / อุตสาหกรรม' },
-                  { id: 'IT', name: 'IT / เทคโนโลยี' },
-                  { id: 'Other', name: 'ทั่วไป / ไม่ระบุ' }
-                ].map((type) => (
-                  <button
-                    key={type.id}
-                    onClick={() => {
-                      setFilterIndustry(type.id);
-                      setShowFilterMenu(false);
-                    }}
-                    className={`w-full text-left px-4 py-2 text-xs font-bold transition-colors ${filterIndustry === type.id ? 'bg-red-50 text-[#800000]' : 'text-gray-600 hover:bg-gray-50'}`}
-                  >
-                    • {type.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+  const token = data.access_token || data.token;
 
-      {filterIndustry !== 'All' && (
-        <div className="mb-4 flex items-center gap-2">
-          <span className="text-xs font-bold text-gray-400">ตัวกรองปัจจุบัน:</span>
-          <span className="inline-flex items-center gap-1 bg-red-50 text-[#800000] text-xs font-black px-3 py-1 rounded-full border border-red-100">
-            {filterIndustry === 'Industry' && 'โรงงาน / อุตสาหกรรม'}
-            {filterIndustry === 'IT' && 'IT / เทคโนโลยี'}
-            {filterIndustry === 'Other' && 'ทั่วไป / ไม่ระบุ'}
-            <X size={12} className="cursor-pointer ml-1" onClick={() => setFilterIndustry('All')} />
-          </span>
-        </div>
-      )}
+  if (!token) {
+    throw new Error("Backend ไม่ได้ส่ง access token กลับมา");
+  }
 
-      <div className="space-y-4">
-        {loading ? (
-          <div className="text-center py-10 text-gray-400 font-bold">กำลังดึงข้อมูล...</div>
-        ) : filteredCompanies.length === 0 ? (
-          <div className="text-center py-10 text-gray-400 font-bold">ไม่พบข้อมูลสถานประกอบการในกลุ่มนี้</div>
-        ) : (
-          filteredCompanies.map((company, index) => (
-            <div
-              key={company.id || index}
-              onClick={() => setSelectedCompany(company)}
-              className="flex items-center justify-between p-5 border border-gray-50 rounded-2xl hover:bg-red-50/50 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gray-100 group-hover:bg-[#800000] group-hover:text-white transition-colors rounded-lg flex items-center justify-center font-bold text-[#800000]">
-                  {index + 1}
-                </div>
-                <div>
-                  <p className="font-black text-gray-800">{company.company_name}</p>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
-                    <p className="text-xs text-gray-400 font-bold flex items-center gap-1">
-                      <MapPin size={12} /> {company.address}
-                    </p>
-                    {company.industry && (
-                      <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-bold">
-                        {company.industry}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <ChevronRight className="text-gray-300 group-hover:text-[#800000]" />
-            </div>
-          ))
-        )}
-      </div>
+  const backendRole = data.role;
 
-      {selectedCompany && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden relative">
-            <div className="bg-[#800000] p-8 text-white">
-              <button onClick={() => setSelectedCompany(null)} className="absolute top-6 right-6 p-2 bg-white/10 rounded-full hover:bg-white/20">
-                <X size={20} />
-              </button>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-[#800000]">
-                  <Building2 size={32} />
-                </div>
-                <div>
-                  <h4 className="text-xl md:text-2xl font-black leading-tight">{selectedCompany.company_name}</h4>
-                  <span className="inline-block mt-1 px-3 py-1 bg-white/20 rounded-full text-xs font-bold">
-                    {selectedCompany.industry || "ทั่วไป"}
-                  </span>
-                </div>
-              </div>
-            </div>
+  if (!backendRole) {
+    throw new Error("Backend ไม่ได้ส่ง role กลับมา");
+  }
 
-            <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 bg-gray-50 rounded-3xl border border-gray-100 flex gap-3">
-                  <MapPin className="text-[#800000] shrink-0" size={20} />
-                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase">ที่ตั้ง</p>
-                    <p className="text-gray-800 font-bold">{selectedCompany.address}</p>
-                  </div>
-                </div>
+  localStorage.setItem("token", token);
+  localStorage.setItem("username", data.username || username.trim());
+  localStorage.setItem("backendRole", backendRole);
 
-                <div className="p-5 bg-gray-50 rounded-3xl border border-gray-100 flex gap-3">
-                  <Phone className="text-[#800000] shrink-0" size={20} />
-                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase">เบอร์โทรศัพท์</p>
-                    <p className="text-gray-800 font-black text-lg">
-                      {selectedCompany.phone || "ไม่ระบุเบอร์โทร"}
-                    </p>
-                  </div>
-                </div>
-              </div>
+  let frontendRole = "student";
 
-              <div className="p-6 bg-red-50/30 rounded-3xl border border-red-100">
-                <p className="text-[10px] font-black text-[#800000] uppercase mb-3 flex items-center gap-2">
-                  <Info size={14} /> รายละเอียดและสวัสดิการ
-                </p>
-                <div className="grid grid-cols-2 gap-y-3 gap-x-4">
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase">เบี้ยเลี้ยง</p>
-                    <p className="text-sm font-bold text-gray-700">{selectedCompany.allowance || "ไม่มี"}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase">ที่พัก</p>
-                    <p className="text-sm font-bold text-gray-700">{selectedCompany.accommodation || "ไม่มี"}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase">รถรับส่ง</p>
-                    <p className="text-sm font-bold text-gray-700">{selectedCompany.shuttle || "ไม่มี"}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase">สวัสดิการอื่นๆ</p>
-                    <p className="text-sm font-bold text-gray-700">{selectedCompany.welfare || "ไม่มี"}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+  if (backendRole === "admin") {
+    frontendRole = "coordinator";
+  } else if (backendRole === "teacher") {
+    frontendRole = "advisor";
+  } else {
+    frontendRole = "student";
+  }
 
-            <div className="p-6 border-t border-gray-50 bg-gray-50/50 flex justify-end">
-              <button onClick={() => setSelectedCompany(null)} className="px-10 py-3 bg-white text-gray-600 rounded-2xl font-black border border-gray-200 shadow-sm">
-                ปิดหน้าต่าง
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+  localStorage.setItem("userRole", frontendRole);
+
+  onLogin(frontendRole, data.username || username.trim());
+} catch (error) {
+  setError(getErrorMessage(error, "เข้าสู่ระบบไม่สำเร็จ"));
+} finally {
+  setLoading(false);
+}
+```
+
+};
+
+return ( <div className="login-page"> <div className="login-card"> <div className="login-logo"> <GraduationCap size={31} /> </div>
+
+```
+    <div className="login-title">
+      Coop Education
     </div>
-  );
-};
 
-// --- 2. ส่วนของอาจารย์ผู้ประสานงานรายวิชา (Coordinator View) ---
-const CoordinatorManagement = ({ activeTab }) => {
-  const [students, setStudents] = useState([
-    { id: "ST6601", name: "สมชาย สายฟ้า", company: "CP All", status: "Wait", major: "CPE", role: "student", access: true },
-    { id: "ST6602", name: "สมหญิง มิ่งขวัญ", company: "Agoda", status: "Approved", major: "AI", role: "student", access: true },
-    { id: "AD7701", name: "ศ.ดร.สมเกียรติ รักเรียน", company: "อาจารย์นิเทศก์คอมพิวเตอร์", status: "-", major: "CPE", role: "advisor", access: true }
-  ]);
+    <div className="login-subtitle">
+      ระบบจัดการสหกิจศึกษา
+    </div>
 
-  const [events, setEvents] = useState([
-    { id: 1, title: "ส่งใบสมัครเลือกสถานประกอบการ", date: "2569-07-30", type: "Calendar" },
-    { id: 2, title: "วันส่งรายงานความก้าวหน้าครั้งที่ 1", date: "2569-08-15", type: "Report" },
-    { id: 3, title: "ช่วงออกตรวจนิเทศงานรอบที่ 1", date: "2569-09-01", type: "Supervise" }
-  ]);
+    {error && (
+      <div className="alert-box alert-error">
+        <AlertCircle size={18} />
+        <div>{error}</div>
+      </div>
+    )}
 
-  const handleStatusChange = (id, newStatus) => {
-    setStudents(students.map(st => st.id === id ? { ...st, status: newStatus } : st));
-  };
+    <form className="login-form" onSubmit={handleSubmit}>
+      <div className="form-group">
+        <label className="form-label">
+          Username
+        </label>
 
-  const toggleAccess = (id) => {
-    setStudents(students.map(st => st.id === id ? { ...st, access: !st.access } : st));
-  };
+        <input
+          className="form-input"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="กรอก Username"
+          autoComplete="username"
+        />
+      </div>
 
-  const handleRoleChange = (id, newRole) => {
-    setStudents(students.map(st => st.id === id ? { ...st, role: newRole } : st));
-  };
+      <div className="form-group">
+        <label className="form-label">
+          Password
+        </label>
 
-  if (activeTab === 'manage_requests') {
-    return (
-      <div className="space-y-6">
-        {/* สถิติรายงานภาพรวมคำร้อง */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-5 rounded-3xl border border-emerald-100 flex items-center justify-between shadow-sm">
-            <div>
-              <p className="text-xs font-black text-emerald-600">สถิติ: อนุมัติผ่านแล้ว</p>
-              <h4 className="text-2xl font-black text-emerald-700 mt-1">
-                {students.filter(s => s.status === 'Approved').length} <span className="text-xs font-bold text-gray-400">บริษัท</span>
-              </h4>
-            </div>
-            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-black">OK</div>
-          </div>
-          <div className="bg-white p-5 rounded-3xl border border-amber-100 flex items-center justify-between shadow-sm">
-            <div>
-              <p className="text-xs font-black text-amber-600">สถิติ: รอการตรวจสอบ</p>
-              <h4 className="text-2xl font-black text-amber-700 mt-1">
-                {students.filter(s => s.status === 'Wait').length} <span className="text-xs font-bold text-gray-400">รายการ</span>
-              </h4>
-            </div>
-            <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center font-black">WAIT</div>
-          </div>
-          <div className="bg-white p-5 rounded-3xl border border-red-100 flex items-center justify-between shadow-sm">
-            <div>
-              <p className="text-xs font-black text-red-600">สถิติ: ปฏิเสธ/ไม่ผ่าน</p>
-              <h4 className="text-2xl font-black text-red-700 mt-1">
-                {students.filter(s => s.status === 'Rejected').length} <span className="text-xs font-bold text-gray-400">รายการ</span>
-              </h4>
-            </div>
-            <div className="w-10 h-10 bg-red-50 text-red-600 rounded-xl flex items-center justify-center font-black">REJ</div>
-          </div>
-        </div>
+        <input
+          className="form-input"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="กรอก Password"
+          autoComplete="current-password"
+        />
+      </div>
 
-        {/* ตารางคำร้องเลือกสถานประกอบการ */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
-          <h3 className="text-[#800000] font-black flex items-center gap-2 text-lg mb-6">
-            <ClipboardCheck size={24}/> จัดการและอนุมัติคำร้องเลือกสถานประกอบการ
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-100 text-xs font-black text-gray-400 uppercase tracking-wider">
-                  <th className="pb-3">รหัสนักศึกษา</th>
-                  <th className="pb-3">ชื่อ-นามสกุล</th>
-                  <th className="pb-3">สาขา</th>
-                  <th className="pb-3">บริษัทที่ยื่นร้องขอ</th>
-                  <th className="pb-3 text-center">สถานะ</th>
-                  <th className="pb-3 text-right">การจัดการจัดการ</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm font-bold text-gray-700 divide-y divide-gray-50">
-                {students.filter(s => s.status !== '-').map(st => (
-                  <tr key={st.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-4 font-black text-gray-500">{st.id}</td>
-                    <td className="py-4 text-gray-800">{st.name}</td>
-                    <td className="py-4"><span className="bg-gray-100 px-2 py-0.5 rounded text-xs">{st.major}</span></td>
-                    <td className="py-4 font-black text-[#800000]">{st.company}</td>
-                    <td className="py-4 text-center">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
-                        st.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                        st.status === 'Rejected' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-amber-50 text-amber-600 border border-amber-100'
-                      }`}>
-                        {st.status === 'Approved' ? 'อนุมัติเรียบร้อย' : st.status === 'Rejected' ? 'ปฏิเสธคำร้อง' : 'รอตรวจสอบ'}
-                      </span>
-                    </td>
-                    <td className="py-4 text-right space-x-2">
-                      <button onClick={() => handleStatusChange(st.id, 'Approved')} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all shadow-sm">อนุมัติ</button>
-                      <button onClick={() => handleStatusChange(st.id, 'Rejected')} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black transition-all shadow-sm">ปฏิเสธ</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <div className="form-group">
+        <label className="form-label">
+          ประเภทผู้ใช้งาน
+        </label>
+
+        <select
+          className="form-select"
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+        >
+          <option value="student">นักศึกษา</option>
+          <option value="advisor">อาจารย์</option>
+          <option value="coordinator">ผู้ประสานงาน / Admin</option>
+        </select>
+      </div>
+
+      <button
+        className="login-button"
+        type="submit"
+        disabled={loading}
+      >
+        {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+      </button>
+    </form>
+
+    <div
+      style={{
+        marginTop: 18,
+        fontSize: 12,
+        color: "#999",
+        textAlign: "center",
+      }}
+    >
+      สิทธิ์การใช้งานจะอ้างอิงจาก Role ที่ Backend ส่งกลับมา
+    </div>
+  </div>
+</div>
+```
+
+);
+}
+
+// ============================================================
+// STUDENT DASHBOARD
+// ============================================================
+
+function StudentOverview({
+profile,
+applications,
+companies,
+teacher,
+loading,
+onRefresh,
+onNavigate,
+}) {
+const studentApplications = applications.filter(
+(application) =>
+Number(application.student_id) === Number(profile?.id)
+);
+
+const approved = studentApplications.filter(
+(item) => item.status === "approved"
+).length;
+
+const pending = studentApplications.filter(
+(item) => item.status === "pending"
+).length;
+
+const rejected = studentApplications.filter(
+(item) => item.status === "rejected"
+).length;
+
+return (
+<> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">สมัครทั้งหมด</div> <div className="stat-number">
+{studentApplications.length} </div> </div>
+
+```
+      <div className="stat-icon">
+        <FileText size={23} />
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-left">
+        <div className="stat-label">รออนุมัติ</div>
+        <div className="stat-number">
+          {pending}
         </div>
       </div>
-    );
-  }
 
-  if (activeTab === 'all_students') {
-    return (
-      <div className="space-y-6">
-        {/* จัดการข้อมูลพื้นฐาน และ สิทธิ์ผู้ใช้ */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
-          <div className="mb-6">
-            <h3 className="text-[#800000] font-black flex items-center gap-2 text-lg">
-              <Users size={24}/> จัดการฐานข้อมูลพื้นฐาน และ บทบาทสิทธิ์ผู้ใช้งาน (User Roles)
-            </h3>
-            <p className="text-xs text-gray-400 font-bold mt-1">สามารถกำหนดแก้ไขบทบาท หรือ เปิด-ปิดการเข้าถึงระบบแบบ Real-time ของบุคคลในวิทยาลัย</p>
-          </div>
+      <div className="stat-icon">
+        <Clock3 size={23} />
+      </div>
+    </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-100 text-xs font-black text-gray-400 uppercase">
-                  <th className="pb-3">รหัสประจำตัว</th>
-                  <th className="pb-3">ชื่อ-นามสกุล</th>
-                  <th className="pb-3">บทบาทระบบ</th>
-                  <th className="pb-3 text-center">สิทธิ์การเข้าถึงฟังก์ชัน</th>
-                  <th className="pb-3 text-right">สถานะระบบ</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm font-bold text-gray-700 divide-y divide-gray-50">
-                {students.map(user => (
-                  <tr key={user.id} className="hover:bg-gray-50/50">
-                    <td className="py-4 font-mono text-gray-400 text-xs">{user.id}</td>
-                    <td className="py-4">{user.name}</td>
-                    <td className="py-4">
-                      <select 
-                        value={user.role} 
-                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                        className="bg-gray-50 border border-gray-100 text-xs font-black rounded-xl p-2 outline-none focus:border-[#800000]"
-                      >
-                        <option value="student">นักศึกษา</option>
-                        <option value="advisor">อาจารย์นิเทศก์</option>
-                        <option value="coordinator">ผู้ประสานงาน</option>
-                      </select>
-                    </td>
-                    <td className="py-4 text-center">
-                      <button 
-                        onClick={() => toggleAccess(user.id)}
-                        className={`inline-flex items-center gap-1 text-xs font-black px-3 py-1 rounded-full border ${
-                          user.access ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-50 text-gray-400 border-gray-200'
-                        }`}
-                      >
-                        {user.access ? <Eye size={12} /> : <EyeOff size={12} />}
-                        {user.access ? 'เปิดการเข้าถึงปกติ' : 'ปิดการเข้าถึงอยู่'}
-                      </button>
-                    </td>
-                    <td className="py-4 text-right">
-                      <span className={`w-2.5 h-2.5 inline-block rounded-full ${user.access ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`}></span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* จัดการปฏิทินและกำหนดการ */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="text-gray-800 font-black flex items-center gap-2 text-base">
-              <Calendar size={20} className="text-[#800000]" /> ปฏิทินกำหนดการกิจกรรม และวันส่งรายงานเอกสารกลาง
-            </h4>
-            <button onClick={() => alert("ระบบฟอร์มเพิ่มปฏิทินกลาง")} className="px-3 py-1.5 bg-[#800000] text-white font-black text-xs rounded-xl hover:bg-black transition-colors">
-              + เพิ่มกำหนดการใหม่
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {events.map(ev => (
-              <div key={ev.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col justify-between gap-4">
-                <div>
-                  <span className="text-[9px] bg-red-50 text-[#800000] px-2 py-0.5 rounded font-black uppercase tracking-wider">{ev.type}</span>
-                  <p className="text-sm font-black text-gray-800 mt-2">{ev.title}</p>
-                </div>
-                <div className="text-xs font-bold text-gray-400 border-t border-gray-200/60 pt-2 flex justify-between items-center">
-                  <span>วันกำหนดการ:</span>
-                  <span className="text-gray-800 font-black">{ev.date}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+    <div className="stat-card">
+      <div className="stat-left">
+        <div className="stat-label">อนุมัติแล้ว</div>
+        <div className="stat-number">
+          {approved}
         </div>
       </div>
-    );
-  }
-  return null;
-};
 
-// --- 3. ส่วนของอาจารย์นิเทศก์ (Advisor View) ---
-const AdvisorManagement = ({ activeTab }) => {
-  const [myStudents, setMyStudents] = useState([
-    { id: "ST6602", name: "สมหญิง มิ่งขวัญ", company: "Agoda (สำนักงานใหญ่ สุขุมวิท)", industry: "IT & Tech", docName: "รายงานความก้าวหน้าสหกิจ_รอบที่1.pdf", note: "ความก้าวหน้างาน 50% ระบบฐานข้อมูลพัฒนาได้ตามแผนงาน" },
-    { id: "ST6605", name: "เกียรติศักดิ์ อุดมสุข", company: "สถาบันวิจัยปัญญาประดิษฐ์ AI-Lab", industry: "Research & Development", docName: "เล่มรายงานฉบับสมบูรณ์_Draft1.pdf", note: "" }
-  ]);
+      <div className="stat-icon">
+        <CheckCircle2 size={23} />
+      </div>
+    </div>
 
-  const handleUpdateNote = (id, newText) => {
-    setMyStudents(myStudents.map(s => s.id === id ? { ...s, note: newText } : s));
-    alert("บันทึกผลการนิเทศและกรอกข้อเสนอแนะสำเร็จ");
-  };
+    <div className="stat-card">
+      <div className="stat-left">
+        <div className="stat-label">ไม่อนุมัติ</div>
+        <div className="stat-number">
+          {rejected}
+        </div>
+      </div>
 
-  if (activeTab === 'supervise') {
-    return (
-      <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
-        <div className="mb-6">
-          <h3 className="text-[#800000] font-black flex items-center gap-2 text-lg">
-            <ClipboardCheck size={24}/> บันทึกผลตรวจการนิเทศงาน และตรวจรับเอกสารนักศึกษา
-          </h3>
-          <p className="text-xs text-gray-400 font-bold mt-1">อาจารย์สามารถดาวน์โหลดไฟล์เอกสารรายงาน ตรวจบันทึกผลคะแนนความก้าวหน้าพร้อมบันทึกคำแนะนำได้</p>
+      <div className="stat-icon">
+        <XCircle size={23} />
+      </div>
+    </div>
+  </div>
+
+  <div className="panel">
+    <div className="panel-header">
+      <div>
+        <div className="panel-title">
+          ข้อมูลนักศึกษา
         </div>
 
-        <div className="space-y-6">
-          {myStudents.map(student => (
-            <div key={student.id} className="p-6 bg-gray-50 rounded-3xl border border-gray-100 space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200/60 pb-4">
-                <div>
-                  <h4 className="font-black text-gray-800 text-sm md:text-base">{student.name} ({student.id})</h4>
-                  <p className="text-xs text-gray-400 font-bold mt-1">🏢 ปฏิบัติงาน ณ: <span className="text-gray-700 font-black">{student.company}</span></p>
-                </div>
-                
-                {/* ปุ่มดาวน์โหลดไฟล์ที่นักศึกษาส่ง */}
-                <button 
-                  onClick={() => alert(`กำลังดาวน์โหลดไฟล์: ${student.docName}`)}
-                  className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 border border-blue-100 px-3 py-2 rounded-xl text-xs font-black hover:bg-blue-100 transition-colors self-start md:self-auto"
-                >
-                  <Download size={14} /> {student.docName}
-                </button>
-              </div>
+        <div className="panel-description">
+          ข้อมูลจาก Student Profile
+        </div>
+      </div>
 
-              {/* แบบฟอร์มบันทึกผลตรวจงาน */}
-              <div className="space-y-2">
-                <label className="text-xs font-black text-gray-500 block">ผลการตรวจประเมินนิเทศงาน และข้อเสนอแนะเพิ่มเติม</label>
-                <div className="flex gap-2">
-                  <textarea
-                    defaultValue={student.note}
-                    placeholder="กรอกข้อความแนะนำการปฏิบัติตัว เล่มรายงาน หรือผลการฝึกงานที่นี่..."
-                    id={`note-${student.id}`}
-                    className="w-full p-4 text-xs font-bold bg-white border border-gray-100 rounded-2xl outline-none focus:border-[#800000] min-h-[90px] transition-colors"
-                  />
-                  <button 
-                    onClick={() => {
-                      const text = document.getElementById(`note-${student.id}`).value;
-                      handleUpdateNote(student.id, text);
-                    }}
-                    className="bg-[#800000] hover:bg-black text-white font-black text-xs px-4 rounded-2xl shadow-sm transition-colors"
-                  >
-                    บันทึก
-                  </button>
-                </div>
-              </div>
+      <button
+        className="secondary-button"
+        onClick={onRefresh}
+        disabled={loading}
+      >
+        <RefreshCw size={16} />
+        รีเฟรช
+      </button>
+    </div>
+
+    <div className="profile-header">
+      <div className="profile-avatar">
+        {(profile?.first_name || "S").charAt(0)}
+      </div>
+
+      <div>
+        <div className="profile-name">
+          {profile?.first_name || "-"}{" "}
+          {profile?.last_name || ""}
+        </div>
+
+        <div className="profile-role">
+          รหัสนักศึกษา: {profile?.student_id || "-"}
+        </div>
+      </div>
+    </div>
+
+    <div className="form-grid">
+      <div className="form-group">
+        <label className="form-label">คณะ</label>
+        <div>{profile?.faculty || "-"}</div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">สาขา</label>
+        <div>{profile?.major || "-"}</div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">อีเมล</label>
+        <div>{profile?.email || "-"}</div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">เบอร์โทรศัพท์</label>
+        <div>{profile?.phone || "-"}</div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">ภาคการศึกษา</label>
+        <div>{profile?.semester || "-"}</div>
+      </div>
+    </div>
+  </div>
+
+  <div className="panel">
+    <div className="panel-header">
+      <div>
+        <div className="panel-title">
+          อาจารย์ที่ปรึกษา / ผู้ดูแล
+        </div>
+
+        <div className="panel-description">
+          ข้อมูลจาก /student/teacher
+        </div>
+      </div>
+    </div>
+
+    {teacher.length === 0 ? (
+      <div className="empty-state">
+        <Users size={40} />
+        <div>ยังไม่พบข้อมูลอาจารย์ผู้ดูแล</div>
+      </div>
+    ) : (
+      <div className="company-grid">
+        {teacher.map((item, index) => (
+          <div className="teacher-card" key={item.id || index}>
+            <div className="teacher-name">
+              {item.teacher_name ||
+                item.name ||
+                `${item.first_name || ""} ${item.last_name || ""}`}
             </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
-  if (activeTab === 'my_students') {
-    return (
-      <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
-        <h3 className="text-[#800000] font-black flex items-center gap-2 text-lg mb-6">
-          <Users size={24}/> รายชื่อนักศึกษาในความดูแลรับผิดชอบ (ความปรึกษาอาจารย์นิเทศก์)
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {myStudents.map(student => (
-            <div key={student.id} className="p-5 border border-gray-100 rounded-2xl hover:bg-red-50/20 transition-all flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gray-50 text-[#800000] flex items-center justify-center font-black text-xs border border-gray-100">
-                CPE
+            {item.company_name && (
+              <div className="teacher-detail">
+                บริษัท: {item.company_name}
               </div>
-              <div className="space-y-1 flex-1">
-                <h4 className="font-black text-gray-800 text-sm">{student.name}</h4>
-                <p className="text-[11px] text-gray-400 font-bold">รหัสประจำตัว: {student.id}</p>
-                <div className="pt-2">
-                  <span className="text-[10px] font-black bg-gray-100 text-gray-600 px-2 py-1 rounded-md block md:inline-block">
-                    📍 {student.company}
-                  </span>
-                </div>
+            )}
+
+            {item.department && (
+              <div className="teacher-detail">
+                หน่วยงาน: {item.department}
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
+            )}
 
-// --- 4. Main Container ---
-const MainAppContainer = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
-  const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || 'student');
-  const [activeTab, setActiveTab] = useState('overview');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
- 
-  const [profileData, setProfileData] = useState(null);
-  const [fetchingUser, setFetchingUser] = useState(false);
-
-  useEffect(() => {
-    if (!isLoggedIn) return;
-
-    // Backend ใช้ role: student / teacher / admin
-    // Frontend แสดงผลเป็น: student / advisor / coordinator
-    // admin ไม่มี /admin/me หรือ /staff/me ใน backend ปัจจุบัน
-    // ดังนั้น coordinator จะใช้ username จากข้อมูล login แทน
-    if (userRole === 'coordinator') {
-      setFetchingUser(false);
-      return;
-    }
-
-    const fetchUserProfile = async () => {
-      try {
-        setFetchingUser(true);
-
-        let endpoint = '/student/me';
-
-        if (userRole === 'advisor') {
-          endpoint = '/teacher/me';
-        }
-
-        const response = await api.get(endpoint);
-
-        console.log("Raw Profile Response:", response.data);
-
-        if (Array.isArray(response.data)) {
-          setProfileData(response.data[0] || null);
-        } else if (response.data?.user) {
-          setProfileData(
-            Array.isArray(response.data.user)
-              ? response.data.user[0]
-              : response.data.user
-          );
-        } else {
-          setProfileData(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-
-        if (error.response?.status === 401) {
-          handleLogout();
-        }
-      } finally {
-        setFetchingUser(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, [isLoggedIn, userRole]);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    setIsLoggedIn(false);
-    setProfileData(null);
-    setUserRole('student');
-    setActiveTab('overview');
-  };
-
-  const handleLoginSuccess = (role, username) => {
-    setUserRole(role);
-    setProfileData(username ? { username } : null);
-    setIsLoggedIn(true);
-  };
-
-  const displayId = profileData?.student_id || profileData?.staff_id || profileData?.username || '-';
-  const displayFullName = profileData?.first_name && profileData?.last_name
-    ? `${profileData.first_name} ${profileData.last_name}`
-    : fetchingUser
-      ? 'กำลังโหลด...'
-      : profileData?.username || 'ผู้ใช้งานระบบ';
-
-  if (!isLoggedIn) return <LoginPage onLogin={handleLoginSuccess} />;
-
-  const getMenuItems = () => {
-    if (userRole === 'student') {
-      return [
-        { id: 'overview', name: 'หน้าหลัก', icon: <BarChart3 size={20}/> },
-        { id: 'company', name: 'บริษัท', icon: <Factory size={20}/> },
-        { id: 'request', name: 'คำร้องของฉัน', icon: <FileSearch size={20}/> }
-      ];
-    } else if (userRole === 'coordinator') {
-      return [
-        { id: 'overview', name: 'แผงควบคุมหลัก', icon: <BarChart3 size={20}/> },
-        { id: 'company', name: 'จัดการบริษัท', icon: <Factory size={20}/> },
-        { id: 'manage_requests', name: 'อนุมัติคำร้องนักศึกษา', icon: <ClipboardCheck size={20}/> },
-        { id: 'all_students', name: 'ข้อมูลสิทธิ์และปฏิทิน', icon: <Users size={20}/> }
-      ];
-    } else {
-      return [
-        { id: 'overview', name: 'หน้าแรก', icon: <BarChart3 size={20}/> },
-        { id: 'company', name: 'ดูรายชื่อสถานประกอบการ', icon: <Factory size={20}/> },
-        { id: 'supervise', name: 'บันทึกการนิเทศงาน', icon: <ClipboardCheck size={20}/> },
-        { id: 'my_students', name: 'นักศึกษาในที่ปรึกษา', icon: <Users size={20}/> }
-      ];
-    }
-  };
-
-  return (
-    <div className="flex h-screen w-full bg-[#f1f5f9] font-['Sarabun'] antialiased overflow-hidden">
-     
-      {/* Sidebar */}
-      <aside className={`fixed md:relative inset-y-0 left-0 z-40 bg-[#800000] text-white transition-all duration-300 flex flex-col shrink-0 ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-72 -translate-x-full md:translate-x-0 md:w-24'}`}>
-        <div className="p-6 flex items-center justify-center border-b border-white/10 relative h-24 shrink-0">
-          <div className="flex items-center gap-3">
-            <RobotLogo className="w-12 h-12 drop-shadow-md" />
-            {(isSidebarOpen || window.innerWidth < 768) && (
-              <span className="font-black text-base uppercase tracking-tighter text-white animate-in fade-in duration-300">
-                CO-OP SYSTEM ({userRole === 'student' ? 'STUDENT' : 'STAFF'})
-              </span>
+            {item.industry && (
+              <div className="teacher-detail">
+                อุตสาหกรรม: {item.industry}
+              </div>
             )}
           </div>
-          {isSidebarOpen && (
-            <button onClick={() => setIsSidebarOpen(false)} className="absolute right-4 md:hidden p-2 hover:bg-white/10 rounded-xl">
-              <X size={20} />
+        ))}
+      </div>
+    )}
+
+    <div style={{ marginTop: 18 }}>
+      <button
+        className="primary-button"
+        onClick={() => onNavigate("company")}
+      >
+        <Building2 size={17} />
+        ดูสถานประกอบการ
+      </button>
+    </div>
+  </div>
+</>
+```
+
+);
+}
+
+// ============================================================
+// STUDENT PROFILE
+// ============================================================
+
+function StudentProfile({
+profile,
+onSaved,
+}) {
+const [form, setForm] = useState({
+first_name: "",
+last_name: "",
+faculty: "",
+major: "",
+username: "",
+phone: "",
+semester: "",
+});
+
+const [saving, setSaving] = useState(false);
+const [message, setMessage] = useState("");
+const [error, setError] = useState("");
+
+useEffect(() => {
+if (!profile) return;
+
+```
+setForm({
+  first_name: profile.first_name || "",
+  last_name: profile.last_name || "",
+  faculty: profile.faculty || "",
+  major: profile.major || "",
+  username: profile.username || profile.student_id || "",
+  phone: profile.phone || "",
+  semester: profile.semester || "",
+});
+```
+
+}, [profile]);
+
+const handleChange = (field, value) => {
+setForm((previous) => ({
+...previous,
+[field]: value,
+}));
+};
+
+const save = async () => {
+try {
+setSaving(true);
+setMessage("");
+setError("");
+
+```
+  const response = await api.put("/student/me", form);
+
+  setMessage("บันทึกข้อมูลเรียบร้อยแล้ว");
+
+  if (onSaved) {
+    onSaved(response.data);
+  }
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถบันทึกข้อมูลนักศึกษาได้"
+    )
+  );
+} finally {
+  setSaving(false);
+}
+```
+
+};
+
+return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
+แก้ไขข้อมูลนักศึกษา </div>
+
+```
+      <div className="panel-description">
+        PUT /student/me
+      </div>
+    </div>
+
+    <User size={22} color="#800000" />
+  </div>
+
+  {message && (
+    <div className="alert-box alert-success">
+      <CheckCircle2 size={18} />
+      {message}
+    </div>
+  )}
+
+  {error && (
+    <div className="alert-box alert-error">
+      <AlertCircle size={18} />
+      {error}
+    </div>
+  )}
+
+  <div className="form-grid">
+    <div className="form-group">
+      <label className="form-label">ชื่อ</label>
+      <input
+        className="form-input"
+        value={form.first_name}
+        onChange={(e) =>
+          handleChange("first_name", e.target.value)
+        }
+      />
+    </div>
+
+    <div className="form-group">
+      <label className="form-label">นามสกุล</label>
+      <input
+        className="form-input"
+        value={form.last_name}
+        onChange={(e) =>
+          handleChange("last_name", e.target.value)
+        }
+      />
+    </div>
+
+    <div className="form-group">
+      <label className="form-label">คณะ</label>
+      <input
+        className="form-input"
+        value={form.faculty}
+        onChange={(e) =>
+          handleChange("faculty", e.target.value)
+        }
+      />
+    </div>
+
+    <div className="form-group">
+      <label className="form-label">สาขา</label>
+      <input
+        className="form-input"
+        value={form.major}
+        onChange={(e) =>
+          handleChange("major", e.target.value)
+        }
+      />
+    </div>
+
+    <div className="form-group">
+      <label className="form-label">Username</label>
+      <input
+        className="form-input"
+        value={form.username}
+        onChange={(e) =>
+          handleChange("username", e.target.value)
+        }
+      />
+    </div>
+
+    <div className="form-group">
+      <label className="form-label">เบอร์โทรศัพท์</label>
+      <input
+        className="form-input"
+        value={form.phone}
+        onChange={(e) =>
+          handleChange("phone", e.target.value)
+        }
+      />
+    </div>
+
+    <div className="form-group">
+      <label className="form-label">
+        ภาคการศึกษา
+      </label>
+
+      <input
+        className="form-input"
+        value={form.semester}
+        onChange={(e) =>
+          handleChange("semester", e.target.value)
+        }
+      />
+    </div>
+  </div>
+
+  <div className="form-actions">
+    <button
+      className="primary-button"
+      onClick={save}
+      disabled={saving}
+    >
+      <Save size={17} />
+      {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+    </button>
+  </div>
+</div>
+```
+
+);
+}
+
+// ============================================================
+// COMPANY MANAGEMENT
+// ============================================================
+
+function CompanyManagement({
+role,
+companies,
+loading,
+onRefresh,
+onApply,
+}) {
+const [search, setSearch] = useState("");
+const [county, setCounty] = useState("");
+const [industry, setIndustry] = useState("");
+const [allowance, setAllowance] = useState("");
+const [accommodation, setAccommodation] = useState("");
+const [shuttle, setShuttle] = useState("");
+
+const industries = useMemo(() => {
+return [
+...new Set(
+companies
+.map((item) => item.industry)
+.filter(Boolean)
+),
+];
+}, [companies]);
+
+const counties = useMemo(() => {
+return [
+...new Set(
+companies
+.map((item) => item.county)
+.filter(Boolean)
+),
+];
+}, [companies]);
+
+const filteredCompanies = useMemo(() => {
+return companies.filter((company) => {
+const searchValue = search.trim().toLowerCase();
+
+```
+  const matchSearch =
+    !searchValue ||
+    String(company.company_name || "")
+      .toLowerCase()
+      .includes(searchValue) ||
+    String(company.address || "")
+      .toLowerCase()
+      .includes(searchValue) ||
+    String(company.county || "")
+      .toLowerCase()
+      .includes(searchValue) ||
+    String(company.industry || "")
+      .toLowerCase()
+      .includes(searchValue);
+
+  const matchCounty =
+    !county || company.county === county;
+
+  const matchIndustry =
+    !industry || company.industry === industry;
+
+  const matchAllowance =
+    !allowance || company.allowance === allowance;
+
+  const matchAccommodation =
+    !accommodation ||
+    company.accommodation === accommodation;
+
+  const matchShuttle =
+    !shuttle || company.shuttle === shuttle;
+
+  return (
+    matchSearch &&
+    matchCounty &&
+    matchIndustry &&
+    matchAllowance &&
+    matchAccommodation &&
+    matchShuttle
+  );
+});
+```
+
+}, [
+companies,
+search,
+county,
+industry,
+allowance,
+accommodation,
+shuttle,
+]);
+
+return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
+สถานประกอบการ </div>
+
+```
+      <div className="panel-description">
+        ข้อมูลจาก GET /companies
+      </div>
+    </div>
+
+    <button
+      className="secondary-button"
+      onClick={onRefresh}
+      disabled={loading}
+    >
+      <RefreshCw size={16} />
+      รีเฟรช
+    </button>
+  </div>
+
+  <div className="search-row">
+    <div className="search-box">
+      <Search size={17} />
+
+      <input
+        className="form-input"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="ค้นหาชื่อบริษัท ที่อยู่ อุตสาหกรรม..."
+      />
+    </div>
+
+    <select
+      className="form-select filter-select"
+      value={county}
+      onChange={(e) => setCounty(e.target.value)}
+    >
+      <option value="">ทุกพื้นที่</option>
+
+      {counties.map((item) => (
+        <option key={item} value={item}>
+          {item}
+        </option>
+      ))}
+    </select>
+
+    <select
+      className="form-select filter-select"
+      value={industry}
+      onChange={(e) => setIndustry(e.target.value)}
+    >
+      <option value="">ทุกอุตสาหกรรม</option>
+
+      {industries.map((item) => (
+        <option key={item} value={item}>
+          {item}
+        </option>
+      ))}
+    </select>
+
+    <select
+      className="form-select filter-select"
+      value={allowance}
+      onChange={(e) => setAllowance(e.target.value)}
+    >
+      <option value="">เบี้ยเลี้ยงทั้งหมด</option>
+      <option value="มี">มี</option>
+      <option value="ไม่มี">ไม่มี</option>
+    </select>
+
+    <select
+      className="form-select filter-select"
+      value={accommodation}
+      onChange={(e) =>
+        setAccommodation(e.target.value)
+      }
+    >
+      <option value="">ที่พักทั้งหมด</option>
+      <option value="มี">มี</option>
+      <option value="ไม่มี">ไม่มี</option>
+    </select>
+
+    <select
+      className="form-select filter-select"
+      value={shuttle}
+      onChange={(e) => setShuttle(e.target.value)}
+    >
+      <option value="">รถรับส่งทั้งหมด</option>
+      <option value="มี">มี</option>
+      <option value="ไม่มี">ไม่มี</option>
+    </select>
+  </div>
+
+  {loading ? (
+    <div className="loading">
+      <div className="spinner" />
+      กำลังโหลดข้อมูลบริษัท...
+    </div>
+  ) : filteredCompanies.length === 0 ? (
+    <div className="empty-state">
+      <Building2 size={42} />
+      <div>ไม่พบสถานประกอบการ</div>
+    </div>
+  ) : (
+    <div className="company-grid">
+      {filteredCompanies.map((company) => (
+        <div
+          className="company-card"
+          key={company.id}
+        >
+          <div className="company-name">
+            {company.company_name || "-"}
+          </div>
+
+          <div className="company-line">
+            <MapPin size={16} />
+            <span>
+              {company.address || "-"}
+            </span>
+          </div>
+
+          <div className="company-line">
+            <BriefcaseBusiness size={16} />
+            <span>
+              {company.industry || "-"}
+            </span>
+          </div>
+
+          <div className="company-line">
+            <MapPin size={16} />
+            <span>
+              {company.county || "-"}
+            </span>
+          </div>
+
+          <div className="company-tags">
+            <span className="company-tag">
+              เบี้ยเลี้ยง: {company.allowance || "-"}
+            </span>
+
+            <span className="company-tag">
+              ที่พัก: {company.accommodation || "-"}
+            </span>
+
+            <span className="company-tag">
+              รถรับส่ง: {company.shuttle || "-"}
+            </span>
+          </div>
+
+          {role === "student" && (
+            <button
+              className="primary-button"
+              style={{
+                width: "100%",
+                marginTop: 15,
+              }}
+              onClick={() => onApply(company)}
+            >
+              <FileText size={16} />
+              สมัครสถานประกอบการ
             </button>
           )}
         </div>
-
-        <nav className="flex-1 px-4 mt-8 space-y-2 overflow-y-auto">
-          {getMenuItems().map(item => (
-            <button key={item.id} onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }} className={`flex items-center w-full p-4 rounded-2xl transition-all ${activeTab === item.id ? 'bg-white text-[#800000] shadow-lg' : 'text-red-100/70 hover:bg-white/5'}`}>
-              {item.icon}
-              {isSidebarOpen && <span className="ml-4 text-xs font-black uppercase tracking-wide">{item.name}</span>}
-            </button>
-          ))}
-        </nav>
-
-        <button onClick={handleLogout} className="p-8 flex items-center text-red-200 hover:text-white transition-colors border-t border-white/5 shrink-0">
-          <LogOut size={20} />
-          {isSidebarOpen && <span className="ml-4 font-black text-xs uppercase">LOGOUT</span>}
-        </button>
-      </aside>
-
-      {/* ขอบเขตเนื้อหาหลักฝั่งขวา */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-       
-        {/* Header แถบบน */}
-        <header className="h-20 bg-white border-b flex items-center justify-between px-8 shrink-0">
-          <div className="flex items-center gap-4">
-            {!isSidebarOpen && (
-              <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl transition-all">
-                <Menu size={20} />
-              </button>
-            )}
-            <h2 className="font-black text-gray-800 uppercase tracking-wide text-sm md:text-base">
-              {activeTab === 'overview' ? 'Dashboard Overview' : activeTab}
-            </h2>
-          </div>
-         
-          <div className="flex items-center gap-3 bg-gray-50 pl-4 pr-3 py-1.5 rounded-2xl border border-gray-100">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-black text-gray-700">
-                {userRole === 'student' ? `ST-ID: ${displayId}` : `STAFF-ID: ${displayId}`}
-              </p>
-              <div className="flex items-center justify-end gap-1.5 mt-0.5">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                <span className="text-[9px] font-black text-red-800 uppercase bg-red-50 px-1.5 py-0.5 rounded">
-                  {userRole === 'student' ? 'นักศึกษา' : userRole === 'coordinator' ? 'ผู้ประสานงาน' : 'อาจารย์นิเทศก์'}
-                </span>
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-[#800000] flex items-center justify-center text-white font-black shadow-md shadow-red-900/20">
-              <User size={20} />
-            </div>
-          </div>
-        </header>
-
-        {/* ส่วนกระดานบอร์ดเนื้อหาหลัก */}
-        <section className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50/50">
-          <div className="max-w-5xl mx-auto space-y-6">
-           
-            {activeTab === 'overview' && (
-              <>
-                {/* 1. ส่วนต้อนรับและข้อมูลส่วนตัวตามบทบาท */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* แบนเนอร์แดงต้อนรับ */}
-                  <div className="lg:col-span-2 bg-gradient-to-br from-[#800000] to-red-950 p-8 md:p-10 rounded-[35px] text-white shadow-xl relative overflow-hidden flex flex-col justify-center">
-                    <h3 className="text-xl md:text-2xl font-black mb-2">
-                      สวัสดีคุณ {displayFullName}!
-                    </h3>
-                    <p className="opacity-80 text-xs font-medium max-w-sm leading-relaxed">
-                      {userRole === 'student'
-                        ? 'ยินดีต้อนรับเข้าสู่ระบบจัดการสหกิจศึกษา ตรวจสอบสถานะคำร้องและข้อมูลบริษัทชั้นนำได้ทันที'
-                        : 'ระบบจัดการหลังบ้านสำหรับคณาจารย์และเจ้าหน้าที่ ตรวจสอบความถูกต้องและอนุมัติสิทธิ์นักศึกษา'}
-                    </p>
-                    <Factory className="absolute -right-6 -bottom-10 w-48 h-48 text-white/5 rotate-12 pointer-events-none" />
-                  </div>
-
-                  {/* การ์ดข้อมูลส่วนตัวผู้ใช้งาน */}
-                  <div className="bg-white p-6 rounded-[35px] shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                      <span className="text-[10px] bg-red-50 text-[#800000] font-black px-2.5 py-1 rounded-md uppercase tracking-wider">
-                        บัญชีผู้ใช้งานปัจจุบัน
-                      </span>
-                     
-                      <div className="flex items-center gap-3 mt-4">
-                        <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-500"><GraduationCap size={24} /></div>
-                        <div>
-                          <p className="text-xs font-black text-gray-800">{displayFullName}</p>
-                          <p className="text-[11px] text-gray-400 font-bold">สิทธิ์ใช้งาน: {userRole}</p>
-                        </div>
-                      </div>
-                    </div>
-                   
-                    <div className="border-t border-gray-50 pt-3 mt-4 space-y-1.5 text-xs text-gray-500 font-bold">
-                      {userRole === 'student' ? (
-                        <>
-                          <p>คณะ: <span className="text-gray-700 font-black">{profileData?.faculty || 'ไม่ระบุคณะ'}</span></p>
-                          <p>สาขา: <span className="text-gray-700 font-black">{profileData?.major || 'ไม่ระบุสาขา'}</span></p>
-                          <p>ภาคเรียนที่: <span className="text-[#800000] font-black">{profileData?.semester || '1'}</span></p>
-                        </>
-                      ) : (
-                        <>
-                          <p>สังกัด: <span className="text-gray-700 font-black">สาขาวิศวกรรมคอมพิวเตอร์และปัญญาประดิษฐ์</span></p>
-                          <p>สถานะการตรวจสอบ: <span className="text-green-600 font-black">Authorized Staff</span></p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. สรุปแดชบอร์ดตามบทบาทผู้ใช้งาน */}
-                <div className="bg-white p-6 md:p-8 rounded-[35px] shadow-sm border border-gray-100">
-                  <h4 className="text-gray-800 font-black mb-6 flex items-center gap-2">
-                    <BarChart3 size={20} className="text-[#800000]"/>
-                    {userRole === 'student' ? 'สรุปสถานะคำร้องส่วนตัว' : 'ภาพรวมข้อมูลคำร้องงานในระบบทั้งหมด'}
-                  </h4>
-                 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-5 bg-emerald-50/50 border border-emerald-100 rounded-2xl flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-emerald-600 mb-1">อนุมัติเรียบร้อย</p>
-                        <h5 className="text-2xl font-black text-emerald-700">{userRole === 'student' ? '2' : '45'} <span className="text-xs font-bold text-emerald-600/70">รายการ</span></h5>
-                      </div>
-                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-xs font-black text-emerald-700 shadow-sm border-2 border-emerald-400">OK</div>
-                    </div>
-
-                    <div className="p-5 bg-amber-50/50 border border-amber-100 rounded-2xl flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-amber-600 mb-1">รอการตรวจสอบ</p>
-                        <h5 className="text-2xl font-black text-amber-700">{userRole === 'student' ? '1' : '12'} <span className="text-xs font-bold text-amber-600/70">รายการ</span></h5>
-                      </div>
-                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-xs font-black text-amber-700 shadow-sm border-2 border-amber-300">WAIT</div>
-                    </div>
-
-                    <div className="p-5 bg-red-50/40 border border-red-100 rounded-2xl flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-red-600 mb-1">ปฏิเสธ/รอแก้ไข</p>
-                        <h5 className="text-2xl font-black text-red-700">{userRole === 'student' ? '0' : '3'} <span className="text-xs font-bold text-red-600/70">รายการ</span></h5>
-                      </div>
-                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-xs font-black text-gray-400 shadow-sm border-2 border-gray-200">0</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ไทม์ไลน์จะแสดงเฉพาะฝั่งนักศึกษา */}
-                {userRole === 'student' && (
-                  <div className="bg-white p-6 md:p-8 rounded-[35px] shadow-sm border border-gray-100">
-                    <h4 className="text-gray-800 font-black mb-8 flex items-center gap-2">
-                      <Calendar size={20} className="text-[#800000]"/> ไทม์ไลน์ขั้นตอนการดำเนินงาน (Co-op Timeline)
-                    </h4>
-                    <div className="relative border-l-2 border-red-100 ml-4 md:ml-6 space-y-8 pb-4">
-                      <div className="relative pl-8">
-                        <div className="absolute -left-[13px] top-0 bg-emerald-500 text-white p-1 rounded-full">
-                          <CheckCircle2 size={16} />
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-emerald-600 font-black bg-emerald-50 px-2 py-0.5 rounded-md">เสร็จสิ้นแล้ว</span>
-                          <h5 className="text-sm font-black text-gray-800 mt-1">ยื่นใบสมัครและเลือกสถานประกอบการ</h5>
-                        </div>
-                      </div>
-                      <div className="relative pl-8">
-                        <div className="absolute -left-[13px] top-0 bg-amber-400 text-white p-1 rounded-full">
-                          <Clock size={16} />
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-amber-600 font-black bg-amber-50 px-2 py-0.5 rounded-md">กำลังดำเนินงาน</span>
-                          <h5 className="text-sm font-black text-gray-800 mt-1">อาจารย์และเจ้าหน้าที่ตรวจสอบคำร้อง</h5>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-
-            {activeTab === 'company' && <CompanyManagement />}
-
-            {/* หน้าสลับสำหรับฝั่ง ผู้ประสานงาน (Coordinator Views) */}
-            {userRole === 'coordinator' && (
-              <CoordinatorManagement activeTab={activeTab} />
-            )}
-
-            {/* หน้าสลับสำหรับฝั่ง อาจารย์นิเทศก์ (Advisor Views) */}
-            {userRole === 'advisor' && (
-              <AdvisorManagement activeTab={activeTab} />
-            )}
-
-            {/* Fallback View สำหรับหน้าคำร้องฝั่งนักศึกษา (Static) */}
-            {userRole === 'student' && activeTab === 'request' && (
-              <div className="bg-white p-20 rounded-[40px] text-center border-2 border-dashed border-gray-100">
-                <FileSearch size={48} className="mx-auto mb-4 text-gray-300" />
-                <h3 className="font-black text-gray-800">หน้าต่างตรวจสอบคำร้องนักศึกษา</h3>
-                <p className="text-xs text-gray-400 font-bold mt-2">คำร้องของคุณกำลังอยู่ในกระบวนการพิจารณาตรวจสอบความถูกต้องโครงสร้างขององค์กร</p>
-              </div>
-            )}
-
-          </div>
-        </section>
-      </main>
-     
-      <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700;800&display=swap');
-        body { font-family: 'Sarabun', sans-serif; }
-      `}} />
+      ))}
     </div>
-  );
-};
+  )}
+</div>
+```
 
-// --- 5. หน้า Login ---
-const LoginPage = ({ onLogin }) => {
-  const [role, setRole] = useState('student'); // 'student' | 'coordinator' | 'advisor'
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+);
+}
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const payload = {
-        username: String(username),
-        password: String(password)
-      };
-      
-      // Backend มี endpoint /login เพียงตัวเดียว
-      // และ backend จะเป็นผู้กำหนด role ที่แท้จริง
-      const response = await api.post('/login', payload);
+// ============================================================
+// APPLICATIONS
+// ============================================================
 
-      const token =
-        typeof response.data === 'string'
-          ? response.data
-          : response.data?.access_token;
+function ApplicationManagement({
+role,
+applications,
+students,
+companies,
+loading,
+onRefresh,
+onApprove,
+onReject,
+}) {
+const studentMap = useMemo(() => {
+const map = {};
 
-      const backendRole =
-        typeof response.data === 'object'
-          ? response.data?.role
-          : null;
+```
+students.forEach((student) => {
+  map[student.id] = student;
+});
 
-      const loggedInUsername =
-        typeof response.data === 'object'
-          ? response.data?.username || username
-          : username;
+return map;
+```
 
-      // แปลง role จาก backend -> role ที่ UI เดิมใช้
-      const frontendRoleMap = {
-        student: 'student',
-        teacher: 'advisor',
-        admin: 'coordinator',
-      };
+}, [students]);
 
-      const frontendRole = frontendRoleMap[backendRole];
+const companyMap = useMemo(() => {
+const map = {};
 
-      if (token && frontendRole) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('userRole', frontendRole);
-        localStorage.setItem('backendRole', backendRole);
+```
+companies.forEach((company) => {
+  map[company.id] = company;
+});
 
-        onLogin(frontendRole, loggedInUsername);
-      } else if (token && !backendRole) {
-        alert("เข้าสู่ระบบสำเร็จ แต่เซิร์ฟเวอร์ไม่ได้ส่งข้อมูลสิทธิ์ (role) กลับมา");
-      } else if (token) {
-        alert(`ไม่พบสิทธิ์ที่ระบบรองรับ: ${backendRole}`);
-      } else {
-        alert("ระบบได้รับข้อมูลสำเร็จ แต่ไม่พบสิทธิ์เข้าใช้งานในรูปแบบ Token");
-      }
-    } catch (error) {
-      if (error.response) {
-        if (error.response.status === 404) {
-          alert(`ไม่พบหน้าปลายทาง (404 Not Found):\nพาท "${error.config.url}" ไม่มีอยู่จริงในเซิร์ฟเวอร์หลังบ้าน`);
-        } else if (error.response.status === 401 || error.response.status === 422) {
-          alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง หรือโครงสร้างข้อมูลไม่สมบูรณ์");
-        } else {
-          alert(`เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: รหัสสถานะ ${error.response.status}`);
-        }
-      } else {
-        alert("ไม่สามารถเชื่อมต่อเครือข่ายเข้ากับเซิร์ฟเวอร์หลังบ้านได้");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+return map;
+```
 
-  const getUsernamePlaceholder = () => {
-    if (role === 'student') return "รหัสนักศึกษา";
-    if (role === 'coordinator') return "ชื่อบัญชีอาจารย์ผู้ประสานงาน";
-    return "ชื่อบัญชีอาจารย์นิเทศก์";
-  };
+}, [companies]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] px-4">
-      <div className="bg-white p-8 md:p-10 rounded-[40px] shadow-2xl w-full max-w-lg border border-gray-50 text-center">
-        <div className="w-20 h-20 flex items-center justify-center mx-auto mb-4">
-          <RobotLogo className="w-18 h-18" />
-        </div>
-        <h1 className="text-xl font-black text-gray-800 uppercase mb-6 tracking-tighter">เข้าสู่ระบบระบบสหกิจศึกษา</h1>
-        
-        <div className="grid grid-cols-3 gap-1 bg-gray-100 p-1.5 rounded-2xl mb-6">
-          <button
-            type="button"
-            onClick={() => { setRole('student'); setUsername(''); setPassword(''); }}
-            className={`py-2.5 rounded-xl font-black text-xs transition-all ${role === 'student' ? 'bg-[#800000] text-white shadow-md' : 'text-gray-500 hover:text-gray-800'}`}
-          >
-            นักศึกษา
-          </button>
-          <button
-            type="button"
-            onClick={() => { setRole('coordinator'); setUsername(''); setPassword(''); }}
-            className={`py-2.5 rounded-xl font-black text-xs transition-all ${role === 'coordinator' ? 'bg-[#800000] text-white shadow-md' : 'text-gray-500 hover:text-gray-800'}`}
-          >
-            ผู้ประสานงาน
-          </button>
-          <button
-            type="button"
-            onClick={() => { setRole('advisor'); setUsername(''); setPassword(''); }}
-            className={`py-2.5 rounded-xl font-black text-xs transition-all ${role === 'advisor' ? 'bg-[#800000] text-white shadow-md' : 'text-gray-500 hover:text-gray-800'}`}
-          >
-            อาจารย์นิเทศก์
-          </button>
-        </div>
+const displayApplications = applications;
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-left">
-          <div>
-            <label className="text-xs font-black text-gray-400 block mb-1.5 pl-1">ชื่อบัญชีผู้ใช้งาน</label>
-            <input
-              type="text"
-              className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold focus:border-[#800000] transition-all text-sm"
-              placeholder={getUsernamePlaceholder()}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="text-xs font-black text-gray-400 block mb-1.5 pl-1">รหัสผ่านสำหรับเข้าสู่ระบบ</label>
-            <input
-              type="password"
-              className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold focus:border-[#800000] transition-all text-sm"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button 
-            type="submit" 
-            disabled={loading} 
-            className="w-full bg-[#800000] text-white py-4 mt-2 rounded-2xl font-black shadow-xl hover:bg-black transition-all text-sm tracking-wider disabled:opacity-50"
-          >
-            {loading ? 'กำลังเข้าสู่ระบบ...' : `เข้าสู่ระบบในฐานะ${role === 'student' ? 'นักศึกษา' : role === 'coordinator' ? 'ผู้ประสานงาน' : 'อาจารย์นิเทศก์'}`}
-          </button>
-        </form>
+return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
+รายการสมัครสถานประกอบการ </div>
+
+```
+      <div className="panel-description">
+        ข้อมูลจาก GET /applications
       </div>
     </div>
+
+    <button
+      className="secondary-button"
+      onClick={onRefresh}
+      disabled={loading}
+    >
+      <RefreshCw size={16} />
+      รีเฟรช
+    </button>
+  </div>
+
+  {loading ? (
+    <div className="loading">
+      <div className="spinner" />
+      กำลังโหลดใบสมัคร...
+    </div>
+  ) : displayApplications.length === 0 ? (
+    <div className="empty-state">
+      <FileText size={42} />
+      <div>ยังไม่มีรายการสมัคร</div>
+    </div>
+  ) : (
+    <div className="table-wrap">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>นักศึกษา</th>
+            <th>สถานประกอบการ</th>
+            <th>สถานะ</th>
+            {role === "coordinator" && (
+              <th>จัดการ</th>
+            )}
+          </tr>
+        </thead>
+
+        <tbody>
+          {displayApplications.map((application) => {
+            const student =
+              studentMap[application.student_id];
+
+            const company =
+              companyMap[application.company_id];
+
+            return (
+              <tr key={application.id}>
+                <td>
+                  #{application.id}
+                </td>
+
+                <td>
+                  {student ? (
+                    <>
+                      <div style={{ fontWeight: 600 }}>
+                        {student.first_name}{" "}
+                        {student.last_name}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#777",
+                        }}
+                      >
+                        {student.student_id}
+                      </div>
+                    </>
+                  ) : (
+                    `Student ID: ${application.student_id}`
+                  )}
+                </td>
+
+                <td>
+                  {company?.company_name ||
+                    `Company ID: ${application.company_id}`}
+                </td>
+
+                <td>
+                  <span
+                    className={`status ${statusClass(
+                      application.status
+                    )}`}
+                  >
+                    {statusText(
+                      application.status
+                    )}
+                  </span>
+                </td>
+
+                {role === "coordinator" && (
+                  <td>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 7,
+                      }}
+                    >
+                      {application.status !==
+                        "approved" && (
+                        <button
+                          className="primary-button"
+                          onClick={() =>
+                            onApprove(application.id)
+                          }
+                        >
+                          <CheckCircle2 size={15} />
+                          อนุมัติ
+                        </button>
+                      )}
+
+                      {application.status !==
+                        "rejected" && (
+                        <button
+                          className="danger-button"
+                          onClick={() =>
+                            onReject(application.id)
+                          }
+                        >
+                          <XCircle size={15} />
+                          ปฏิเสธ
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  )}
+</div>
+```
+
+);
+}
+
+// ============================================================
+// TEACHER PAGE
+// ============================================================
+
+function TeacherDashboard({
+teacherProfile,
+teacherStudents,
+teacherDashboard,
+teacherSupervisions,
+onRefresh,
+}) {
+const [editing, setEditing] = useState(false);
+
+const [form, setForm] = useState({
+username: "",
+rank: "",
+first_name: "",
+last_name: "",
+email: "",
+role: "teacher",
+});
+
+const [saving, setSaving] = useState(false);
+const [message, setMessage] = useState("");
+const [error, setError] = useState("");
+
+useEffect(() => {
+if (!teacherProfile) return;
+
+```
+setForm({
+  username: teacherProfile.username || "",
+  rank: teacherProfile.rank || "",
+  first_name: teacherProfile.first_name || "",
+  last_name: teacherProfile.last_name || "",
+  email: teacherProfile.email || "",
+  role: teacherProfile.role || "teacher",
+});
+```
+
+}, [teacherProfile]);
+
+const saveProfile = async () => {
+try {
+setSaving(true);
+setMessage("");
+setError("");
+
+```
+  await api.put("/teacher/me", form);
+
+  setMessage("บันทึกข้อมูลอาจารย์เรียบร้อยแล้ว");
+  setEditing(false);
+
+  onRefresh();
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถบันทึกข้อมูลอาจารย์ได้"
+    )
   );
+} finally {
+  setSaving(false);
+}
+```
+
 };
+
+return (
+<> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">
+นักศึกษาที่รับผิดชอบ </div>
+
+```
+        <div className="stat-number">
+          {teacherDashboard?.students ??
+            teacherStudents.length ??
+            0}
+        </div>
+      </div>
+
+      <div className="stat-icon">
+        <Users size={23} />
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-left">
+        <div className="stat-label">
+          จำนวนการนิเทศ
+        </div>
+
+        <div className="stat-number">
+          {teacherDashboard?.supervision_count ??
+            teacherSupervisions.length}
+        </div>
+      </div>
+
+      <div className="stat-icon">
+        <ClipboardList size={23} />
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-left">
+        <div className="stat-label">
+          นักศึกษาในรายการ
+        </div>
+
+        <div className="stat-number">
+          {teacherStudents.length}
+        </div>
+      </div>
+
+      <div className="stat-icon">
+        <GraduationCap size={23} />
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-left">
+        <div className="stat-label">
+          สถานะระบบ
+        </div>
+
+        <div className="stat-number">
+          ✓
+        </div>
+      </div>
+
+      <div className="stat-icon">
+        <ShieldCheck size={23} />
+      </div>
+    </div>
+  </div>
+
+  {message && (
+    <div className="alert-box alert-success">
+      <CheckCircle2 size={18} />
+      {message}
+    </div>
+  )}
+
+  {error && (
+    <div className="alert-box alert-error">
+      <AlertCircle size={18} />
+      {error}
+    </div>
+  )}
+
+  <div className="panel">
+    <div className="panel-header">
+      <div>
+        <div className="panel-title">
+          ข้อมูลอาจารย์
+        </div>
+
+        <div className="panel-description">
+          GET /teacher/me และ PUT /teacher/me
+        </div>
+      </div>
+
+      {!editing ? (
+        <button
+          className="secondary-button"
+          onClick={() => setEditing(true)}
+        >
+          <Pencil size={16} />
+          แก้ไข
+        </button>
+      ) : (
+        <button
+          className="secondary-button"
+          onClick={() => setEditing(false)}
+        >
+          <X size={16} />
+          ยกเลิก
+        </button>
+      )}
+    </div>
+
+    {!editing ? (
+      <div className="profile-header">
+        <div className="profile-avatar">
+          {(teacherProfile?.first_name || "T").charAt(0)}
+        </div>
+
+        <div>
+          <div className="profile-name">
+            {teacherProfile?.rank || ""}{" "}
+            {teacherProfile?.first_name || "-"}{" "}
+            {teacherProfile?.last_name || ""}
+          </div>
+
+          <div className="profile-role">
+            Username:{" "}
+            {teacherProfile?.username || "-"}
+          </div>
+
+          <div className="profile-role">
+            Email: {teacherProfile?.email || "-"}
+          </div>
+        </div>
+      </div>
+    ) : (
+      <>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">
+              Username
+            </label>
+
+            <input
+              className="form-input"
+              value={form.username}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  username: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              คำนำหน้า / ตำแหน่ง
+            </label>
+
+            <input
+              className="form-input"
+              value={form.rank}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  rank: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              ชื่อ
+            </label>
+
+            <input
+              className="form-input"
+              value={form.first_name}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  first_name: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              นามสกุล
+            </label>
+
+            <input
+              className="form-input"
+              value={form.last_name}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  last_name: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              Email
+            </label>
+
+            <input
+              className="form-input"
+              value={form.email}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  email: e.target.value,
+                })
+              }
+            />
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button
+            className="primary-button"
+            onClick={saveProfile}
+            disabled={saving}
+          >
+            <Save size={16} />
+            {saving
+              ? "กำลังบันทึก..."
+              : "บันทึกข้อมูล"}
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+
+  <div className="panel">
+    <div className="panel-header">
+      <div>
+        <div className="panel-title">
+          นักศึกษาที่รับผิดชอบ
+        </div>
+
+        <div className="panel-description">
+          GET /teacher/students
+        </div>
+      </div>
+    </div>
+
+    {teacherStudents.length === 0 ? (
+      <div className="empty-state">
+        <Users size={40} />
+        <div>
+          ไม่พบรายชื่อนักศึกษา
+        </div>
+      </div>
+    ) : (
+      <div className="table-wrap">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>รหัสนักศึกษา</th>
+              <th>ชื่อ</th>
+              <th>บริษัท</th>
+              <th>แผนก</th>
+              <th>อุตสาหกรรม</th>
+              <th>รูปแบบงาน</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {teacherStudents.map((student) => (
+              <tr key={student.id}>
+                <td>{student.student_id}</td>
+                <td>{student.student_name}</td>
+                <td>{student.company_name}</td>
+                <td>{student.department || "-"}</td>
+                <td>{student.industry || "-"}</td>
+                <td>{student.work_modes || "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+
+  <div className="panel">
+    <div className="panel-header">
+      <div>
+        <div className="panel-title">
+          ประวัติการนิเทศ
+        </div>
+
+        <div className="panel-description">
+          GET /teacher/supervisions
+        </div>
+      </div>
+    </div>
+
+    {teacherSupervisions.length === 0 ? (
+      <div className="empty-state">
+        <ClipboardList size={40} />
+        <div>
+          ยังไม่มีข้อมูลการนิเทศ
+        </div>
+      </div>
+    ) : (
+      <div className="table-wrap">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>วันที่</th>
+              <th>นักศึกษา</th>
+              <th>บริษัท</th>
+              <th>อุตสาหกรรม</th>
+              <th>ประเภท</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {teacherSupervisions.map(
+              (supervision, index) => (
+                <tr key={index}>
+                  <td>
+                    {formatDate(
+                      supervision.date
+                    )}
+                  </td>
+
+                  <td>
+                    {supervision.student_id}
+                    <br />
+                    {supervision.student_first_name}{" "}
+                    {supervision.student_last_name}
+                  </td>
+
+                  <td>
+                    {supervision.company_name}
+                  </td>
+
+                  <td>
+                    {supervision.industry}
+                  </td>
+
+                  <td>
+                    {supervision.type}
+                  </td>
+
+                  <td>
+                    <span
+                      className={`status ${statusClass(
+                        supervision.status
+                      )}`}
+                    >
+                      {statusText(
+                        supervision.status
+                      )}
+                    </span>
+                  </td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+</>
+```
+
+);
+}
+
+// ============================================================
+// ADMIN DASHBOARD
+// ============================================================
+
+function AdminDashboard({
+dashboard,
+applications,
+students,
+companies,
+loading,
+onRefresh,
+}) {
+return (
+<> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">
+นักศึกษาทั้งหมด </div>
+
+```
+        <div className="stat-number">
+          {dashboard?.students ?? students.length}
+        </div>
+      </div>
+
+      <div className="stat-icon">
+        <Users size={23} />
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-left">
+        <div className="stat-label">
+          สถานประกอบการ
+        </div>
+
+        <div className="stat-number">
+          {dashboard?.companies ??
+            companies.length}
+        </div>
+      </div>
+
+      <div className="stat-icon">
+        <Building2 size={23} />
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-left">
+        <div className="stat-label">
+          ใบสมัคร
+        </div>
+
+        <div className="stat-number">
+          {dashboard?.applications ??
+            applications.length}
+        </div>
+      </div>
+
+      <div className="stat-icon">
+        <FileText size={23} />
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-left">
+        <div className="stat-label">
+          การนิเทศ
+        </div>
+
+        <div className="stat-number">
+          {dashboard?.supervisions ?? 0}
+        </div>
+      </div>
+
+      <div className="stat-icon">
+        <ClipboardList size={23} />
+      </div>
+    </div>
+  </div>
+
+  <div className="panel">
+    <div className="panel-header">
+      <div>
+        <div className="panel-title">
+          Admin Dashboard
+        </div>
+
+        <div className="panel-description">
+          GET /admin/dashboard
+        </div>
+      </div>
+
+      <button
+        className="secondary-button"
+        onClick={onRefresh}
+        disabled={loading}
+      >
+        <RefreshCw size={16} />
+        รีเฟรชข้อมูล
+      </button>
+    </div>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns:
+          "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: 15,
+      }}
+    >
+      <div className="company-card">
+        <Users size={23} color="#800000" />
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            marginTop: 8,
+          }}
+        >
+          {students.length}
+        </div>
+        <div style={{ color: "#777" }}>
+          นักศึกษา
+        </div>
+      </div>
+
+      <div className="company-card">
+        <Building2 size={23} color="#800000" />
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            marginTop: 8,
+          }}
+        >
+          {companies.length}
+        </div>
+        <div style={{ color: "#777" }}>
+          บริษัท
+        </div>
+      </div>
+
+      <div className="company-card">
+        <FileText size={23} color="#800000" />
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            marginTop: 8,
+          }}
+        >
+          {applications.length}
+        </div>
+        <div style={{ color: "#777" }}>
+          ใบสมัคร
+        </div>
+      </div>
+    </div>
+  </div>
+</>
+```
+
+);
+}
+
+// ============================================================
+// ADMIN STUDENTS
+// ============================================================
+
+function AdminStudents({
+students,
+loading,
+onRefresh,
+onDelete,
+}) {
+return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
+จัดการนักศึกษา </div>
+
+```
+      <div className="panel-description">
+        GET /students
+      </div>
+    </div>
+
+    <button
+      className="secondary-button"
+      onClick={onRefresh}
+      disabled={loading}
+    >
+      <RefreshCw size={16} />
+      รีเฟรช
+    </button>
+  </div>
+
+  {loading ? (
+    <div className="loading">
+      <div className="spinner" />
+      กำลังโหลดข้อมูล...
+    </div>
+  ) : students.length === 0 ? (
+    <div className="empty-state">
+      <Users size={40} />
+      ไม่พบข้อมูลนักศึกษา
+    </div>
+  ) : (
+    <div className="table-wrap">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>รหัสนักศึกษา</th>
+            <th>ชื่อ</th>
+            <th>คณะ</th>
+            <th>สาขา</th>
+            <th>เบอร์โทร</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {students.map((student) => (
+            <tr key={student.id}>
+              <td>{student.id}</td>
+              <td>{student.student_id}</td>
+              <td>
+                {student.first_name}{" "}
+                {student.last_name}
+              </td>
+              <td>{student.faculty}</td>
+              <td>{student.major}</td>
+              <td>{student.phone}</td>
+              <td>
+                <button
+                  className="danger-button"
+                  onClick={() =>
+                    onDelete(student.id)
+                  }
+                >
+                  <Trash2 size={15} />
+                  ลบ
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</div>
+```
+
+);
+}
+
+// ============================================================
+// UPLOAD PDF
+// ============================================================
+
+function UploadPDF() {
+const [file, setFile] = useState(null);
+const [uploading, setUploading] = useState(false);
+const [result, setResult] = useState(null);
+const [error, setError] = useState("");
+
+const upload = async () => {
+if (!file) {
+setError("กรุณาเลือกไฟล์ PDF");
+return;
+}
+
+```
+if (file.type !== "application/pdf") {
+  setError("สามารถอัปโหลดได้เฉพาะไฟล์ PDF");
+  return;
+}
+
+try {
+  setUploading(true);
+  setError("");
+  setResult(null);
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await api.post(
+    "/upload-pdf",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  setResult(response.data);
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "อัปโหลดไฟล์ไม่สำเร็จ"
+    )
+  );
+} finally {
+  setUploading(false);
+}
+```
+
+};
+
+return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
+อัปโหลดเอกสาร PDF </div>
+
+```
+      <div className="panel-description">
+        POST /upload-pdf
+      </div>
+    </div>
+
+    <Upload size={22} color="#800000" />
+  </div>
+
+  {error && (
+    <div className="alert-box alert-error">
+      <AlertCircle size={18} />
+      {error}
+    </div>
+  )}
+
+  {result && (
+    <div className="alert-box alert-success">
+      <CheckCircle2 size={18} />
+      อัปโหลดสำเร็จ: {result.filename}
+    </div>
+  )}
+
+  <div className="form-group">
+    <label className="form-label">
+      เลือกไฟล์ PDF
+    </label>
+
+    <input
+      className="form-input"
+      type="file"
+      accept="application/pdf,.pdf"
+      onChange={(e) =>
+        setFile(e.target.files?.[0] || null)
+      }
+    />
+  </div>
+
+  <div className="form-actions">
+    <button
+      className="primary-button"
+      onClick={upload}
+      disabled={uploading}
+    >
+      <Upload size={16} />
+      {uploading
+        ? "กำลังอัปโหลด..."
+        : "อัปโหลด PDF"}
+    </button>
+  </div>
+</div>
+```
+
+);
+}
+
+// ============================================================
+// MAIN APP
+// ============================================================
+
+function MainAppContainer() {
+const [loggedIn, setLoggedIn] = useState(
+Boolean(localStorage.getItem("token"))
+);
+
+const [role, setRole] = useState(
+localStorage.getItem("userRole") || "student"
+);
+
+const [username, setUsername] = useState(
+localStorage.getItem("username") || ""
+);
+
+const [profile, setProfile] = useState(null);
+const [teacherProfile, setTeacherProfile] = useState(null);
+
+const [teacherStudents, setTeacherStudents] = useState([]);
+const [teacherDashboard, setTeacherDashboard] =
+useState(null);
+const [teacherSupervisions, setTeacherSupervisions] =
+useState([]);
+
+const [students, setStudents] = useState([]);
+const [companies, setCompanies] = useState([]);
+const [applications, setApplications] = useState([]);
+const [adminDashboard, setAdminDashboard] =
+useState(null);
+
+const [teacher, setTeacher] = useState([]);
+
+const [activePage, setActivePage] =
+useState("overview");
+
+const [loading, setLoading] = useState(false);
+const [pageLoading, setPageLoading] =
+useState(false);
+
+const [error, setError] = useState("");
+const [sidebarOpen, setSidebarOpen] =
+useState(false);
+
+// ==========================================================
+// LOAD PROFILE
+// ==========================================================
+
+const loadProfile = async () => {
+try {
+if (role === "student") {
+const response = await api.get("/student/me");
+
+```
+    setProfile(response.data);
+  }
+
+  if (role === "advisor") {
+    const response = await api.get("/teacher/me");
+
+    setTeacherProfile(response.data);
+  }
+} catch (error) {
+  if (error?.response?.status === 401) {
+    logout();
+    return;
+  }
+
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถโหลดข้อมูล Profile ได้"
+    )
+  );
+}
+```
+
+};
+
+// ==========================================================
+// LOAD COMPANIES
+// ==========================================================
+
+const loadCompanies = async () => {
+try {
+setLoading(true);
+
+```
+  const response = await api.get("/companies");
+
+  setCompanies(normalizeArray(response.data));
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถโหลดข้อมูลบริษัทได้"
+    )
+  );
+} finally {
+  setLoading(false);
+}
+```
+
+};
+
+// ==========================================================
+// LOAD APPLICATIONS
+// ==========================================================
+
+const loadApplications = async () => {
+try {
+setLoading(true);
+
+```
+  const response = await api.get("/applications");
+
+  setApplications(
+    normalizeArray(response.data)
+  );
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถโหลดข้อมูลใบสมัครได้"
+    )
+  );
+} finally {
+  setLoading(false);
+}
+```
+
+};
+
+// ==========================================================
+// LOAD ADMIN STUDENTS
+// ==========================================================
+
+const loadStudents = async () => {
+if (role !== "coordinator") return;
+
+```
+try {
+  setLoading(true);
+
+  const response = await api.get("/students");
+
+  setStudents(normalizeArray(response.data));
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถโหลดข้อมูลนักศึกษาได้"
+    )
+  );
+} finally {
+  setLoading(false);
+}
+```
+
+};
+
+// ==========================================================
+// LOAD ADMIN DASHBOARD
+// ==========================================================
+
+const loadAdminDashboard = async () => {
+if (role !== "coordinator") return;
+
+```
+try {
+  const response = await api.get(
+    "/admin/dashboard"
+  );
+
+  setAdminDashboard(response.data);
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถโหลด Admin Dashboard ได้"
+    )
+  );
+}
+```
+
+};
+
+// ==========================================================
+// LOAD STUDENT TEACHER
+// ==========================================================
+
+const loadStudentTeacher = async () => {
+if (role !== "student") return;
+
+```
+try {
+  const response = await api.get(
+    "/student/teacher"
+  );
+
+  setTeacher(normalizeArray(response.data));
+} catch (error) {
+  // 404 means teacher may not have been assigned.
+  if (error?.response?.status !== 404) {
+    setError(
+      getErrorMessage(
+        error,
+        "ไม่สามารถโหลดข้อมูลอาจารย์ได้"
+      )
+    );
+  }
+
+  setTeacher([]);
+}
+```
+
+};
+
+// ==========================================================
+// LOAD TEACHER DATA
+// ==========================================================
+
+const loadTeacherData = async () => {
+if (role !== "advisor") return;
+
+```
+try {
+  setPageLoading(true);
+
+  const [
+    profileResponse,
+    studentsResponse,
+    dashboardResponse,
+    supervisionResponse,
+  ] = await Promise.all([
+    api.get("/teacher/me"),
+    api.get("/teacher/students"),
+    api.get("/teacher/dashboard"),
+    api.get("/teacher/supervisions"),
+  ]);
+
+  setTeacherProfile(profileResponse.data);
+
+  setTeacherStudents(
+    normalizeArray(studentsResponse.data)
+  );
+
+  setTeacherDashboard(
+    dashboardResponse.data
+  );
+
+  setTeacherSupervisions(
+    normalizeArray(
+      supervisionResponse.data
+    )
+  );
+} catch (error) {
+  if (error?.response?.status === 401) {
+    logout();
+    return;
+  }
+
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถโหลดข้อมูลอาจารย์ได้"
+    )
+  );
+} finally {
+  setPageLoading(false);
+}
+```
+
+};
+
+// ==========================================================
+// LOAD ALL DATA
+// ==========================================================
+
+const loadAllData = async () => {
+if (!loggedIn) return;
+
+```
+setError("");
+
+await loadProfile();
+await loadCompanies();
+await loadApplications();
+
+if (role === "student") {
+  await loadStudentTeacher();
+}
+
+if (role === "coordinator") {
+  await loadStudents();
+  await loadAdminDashboard();
+}
+
+if (role === "advisor") {
+  await loadTeacherData();
+}
+```
+
+};
+
+useEffect(() => {
+if (loggedIn) {
+loadAllData();
+}
+}, [loggedIn, role]);
+
+// ==========================================================
+// LOGIN
+// ==========================================================
+
+const handleLoginSuccess = (
+newRole,
+newUsername
+) => {
+setRole(newRole);
+setUsername(newUsername);
+setLoggedIn(true);
+setActivePage("overview");
+setError("");
+};
+
+// ==========================================================
+// LOGOUT
+// ==========================================================
+
+const logout = () => {
+localStorage.removeItem("token");
+localStorage.removeItem("username");
+localStorage.removeItem("userRole");
+localStorage.removeItem("backendRole");
+
+```
+setLoggedIn(false);
+setProfile(null);
+setTeacherProfile(null);
+setTeacherStudents([]);
+setTeacherDashboard(null);
+setTeacherSupervisions([]);
+setStudents([]);
+setCompanies([]);
+setApplications([]);
+setTeacher([]);
+```
+
+};
+
+// ==========================================================
+// APPLY COMPANY
+// ==========================================================
+
+const handleApplyCompany = async (company) => {
+if (!profile?.id) {
+alert(
+"ไม่พบ ID ของนักศึกษา กรุณาตรวจสอบ Student Profile"
+);
+return;
+}
+
+```
+const confirmed = window.confirm(
+  `ต้องการสมัคร "${company.company_name}" หรือไม่?`
+);
+
+if (!confirmed) return;
+
+try {
+  setLoading(true);
+  setError("");
+
+  await api.post("/apply", {
+    student_id: Number(profile.id),
+    company_id: Number(company.id),
+  });
+
+  alert("ส่งใบสมัครเรียบร้อยแล้ว");
+
+  await loadApplications();
+
+  setActivePage("applications");
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "สมัครสถานประกอบการไม่สำเร็จ"
+    )
+  );
+} finally {
+  setLoading(false);
+}
+```
+
+};
+
+// ==========================================================
+// APPROVE APPLICATION
+// ==========================================================
+
+const handleApproveApplication = async (
+applicationId
+) => {
+const confirmed = window.confirm(
+"ยืนยันการอนุมัติใบสมัครนี้หรือไม่?"
+);
+
+```
+if (!confirmed) return;
+
+try {
+  setLoading(true);
+
+  await api.put(
+    `/applications/${applicationId}/approve`
+  );
+
+  await loadApplications();
+  await loadAdminDashboard();
+
+  alert("อนุมัติใบสมัครเรียบร้อยแล้ว");
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถอนุมัติใบสมัครได้"
+    )
+  );
+} finally {
+  setLoading(false);
+}
+```
+
+};
+
+// ==========================================================
+// REJECT APPLICATION
+// ==========================================================
+
+const handleRejectApplication = async (
+applicationId
+) => {
+const confirmed = window.confirm(
+"ยืนยันการปฏิเสธใบสมัครนี้หรือไม่?"
+);
+
+```
+if (!confirmed) return;
+
+try {
+  setLoading(true);
+
+  await api.put(
+    `/applications/${applicationId}/reject`
+  );
+
+  await loadApplications();
+  await loadAdminDashboard();
+
+  alert("ปฏิเสธใบสมัครเรียบร้อยแล้ว");
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถปฏิเสธใบสมัครได้"
+    )
+  );
+} finally {
+  setLoading(false);
+}
+```
+
+};
+
+// ==========================================================
+// DELETE STUDENT
+// ==========================================================
+
+const handleDeleteStudent = async (
+studentId
+) => {
+const confirmed = window.confirm(
+"ยืนยันการลบนักศึกษาคนนี้หรือไม่?"
+);
+
+```
+if (!confirmed) return;
+
+try {
+  setLoading(true);
+
+  await api.delete(
+    `/students/${studentId}`
+  );
+
+  await loadStudents();
+  await loadAdminDashboard();
+
+  alert("ลบนักศึกษาเรียบร้อยแล้ว");
+} catch (error) {
+  setError(
+    getErrorMessage(
+      error,
+      "ไม่สามารถลบนักศึกษาได้"
+    )
+  );
+} finally {
+  setLoading(false);
+}
+```
+
+};
+
+// ==========================================================
+// SAVE STUDENT PROFILE
+// ==========================================================
+
+const handleStudentProfileSaved = (
+updatedProfile
+) => {
+setProfile(updatedProfile);
+};
+
+// ==========================================================
+// MENU
+// ==========================================================
+
+const menus = {
+student: [
+{
+key: "overview",
+label: "ภาพรวม",
+icon: LayoutDashboard,
+},
+{
+key: "profile",
+label: "ข้อมูลส่วนตัว",
+icon: User,
+},
+{
+key: "company",
+label: "สถานประกอบการ",
+icon: Building2,
+},
+{
+key: "applications",
+label: "ใบสมัครของฉัน",
+icon: FileText,
+},
+{
+key: "upload",
+label: "เอกสาร PDF",
+icon: Upload,
+},
+],
+
+```
+advisor: [
+  {
+    key: "overview",
+    label: "ภาพรวม",
+    icon: LayoutDashboard,
+  },
+  {
+    key: "company",
+    label: "สถานประกอบการ",
+    icon: Building2,
+  },
+  {
+    key: "students",
+    label: "นักศึกษาที่รับผิดชอบ",
+    icon: Users,
+  },
+  {
+    key: "supervision",
+    label: "ประวัติการนิเทศ",
+    icon: ClipboardList,
+  },
+],
+
+coordinator: [
+  {
+    key: "overview",
+    label: "ภาพรวม",
+    icon: LayoutDashboard,
+  },
+  {
+    key: "applications",
+    label: "จัดการใบสมัคร",
+    icon: FileText,
+  },
+  {
+    key: "students",
+    label: "นักศึกษา",
+    icon: Users,
+  },
+  {
+    key: "company",
+    label: "สถานประกอบการ",
+    icon: Building2,
+  },
+],
+```
+
+};
+
+const currentMenus = menus[role] || menus.student;
+
+const currentMenu =
+currentMenus.find(
+(item) => item.key === activePage
+) || currentMenus[0];
+
+// ==========================================================
+// PAGE TITLE
+// ==========================================================
+
+const pageTitles = {
+overview: "ภาพรวม",
+profile: "ข้อมูลส่วนตัว",
+company: "สถานประกอบการ",
+applications: "ใบสมัคร",
+upload: "เอกสาร PDF",
+students: "นักศึกษา",
+supervision: "การนิเทศ",
+};
+
+// ==========================================================
+// RENDER PAGE
+// ==========================================================
+
+const renderPage = () => {
+if (pageLoading) {
+return ( <div className="panel"> <div className="loading"> <div className="spinner" />
+กำลังโหลดข้อมูล... </div> </div>
+);
+}
+
+```
+if (activePage === "overview") {
+  if (role === "student") {
+    return (
+      <StudentOverview
+        profile={profile}
+        applications={applications}
+        companies={companies}
+        teacher={teacher}
+        loading={loading}
+        onRefresh={loadAllData}
+        onNavigate={setActivePage}
+      />
+    );
+  }
+
+  if (role === "advisor") {
+    return (
+      <TeacherDashboard
+        teacherProfile={teacherProfile}
+        teacherStudents={teacherStudents}
+        teacherDashboard={teacherDashboard}
+        teacherSupervisions={
+          teacherSupervisions
+        }
+        onRefresh={loadTeacherData}
+      />
+    );
+  }
+
+  if (role === "coordinator") {
+    return (
+      <AdminDashboard
+        dashboard={adminDashboard}
+        applications={applications}
+        students={students}
+        companies={companies}
+        loading={loading}
+        onRefresh={loadAllData}
+      />
+    );
+  }
+}
+
+if (
+  activePage === "profile" &&
+  role === "student"
+) {
+  return (
+    <StudentProfile
+      profile={profile}
+      onSaved={handleStudentProfileSaved}
+    />
+  );
+}
+
+if (activePage === "company") {
+  return (
+    <CompanyManagement
+      role={role}
+      companies={companies}
+      loading={loading}
+      onRefresh={loadCompanies}
+      onApply={handleApplyCompany}
+    />
+  );
+}
+
+if (activePage === "applications") {
+  let displayApplications =
+    applications;
+
+  if (role === "student" && profile?.id) {
+    displayApplications =
+      applications.filter(
+        (application) =>
+          Number(application.student_id) ===
+          Number(profile.id)
+      );
+  }
+
+  return (
+    <ApplicationManagement
+      role={role}
+      applications={displayApplications}
+      students={students}
+      companies={companies}
+      loading={loading}
+      onRefresh={loadApplications}
+      onApprove={
+        handleApproveApplication
+      }
+      onReject={
+        handleRejectApplication
+      }
+    />
+  );
+}
+
+if (
+  activePage === "upload" &&
+  role === "student"
+) {
+  return <UploadPDF />;
+}
+
+if (
+  activePage === "students" &&
+  role === "coordinator"
+) {
+  return (
+    <AdminStudents
+      students={students}
+      loading={loading}
+      onRefresh={loadStudents}
+      onDelete={handleDeleteStudent}
+    />
+  );
+}
+
+if (
+  activePage === "students" &&
+  role === "advisor"
+) {
+  return (
+    <div className="panel">
+      <div className="panel-header">
+        <div>
+          <div className="panel-title">
+            นักศึกษาที่รับผิดชอบ
+          </div>
+
+          <div className="panel-description">
+            GET /teacher/students
+          </div>
+        </div>
+
+        <button
+          className="secondary-button"
+          onClick={loadTeacherData}
+        >
+          <RefreshCw size={16} />
+          รีเฟรช
+        </button>
+      </div>
+
+      {teacherStudents.length === 0 ? (
+        <div className="empty-state">
+          <Users size={40} />
+          ไม่พบข้อมูลนักศึกษา
+        </div>
+      ) : (
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>รหัส</th>
+                <th>ชื่อ</th>
+                <th>บริษัท</th>
+                <th>แผนก</th>
+                <th>อุตสาหกรรม</th>
+                <th>รูปแบบงาน</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {teacherStudents.map(
+                (student) => (
+                  <tr key={student.id}>
+                    <td>
+                      {student.student_id}
+                    </td>
+
+                    <td>
+                      {student.student_name}
+                    </td>
+
+                    <td>
+                      {student.company_name}
+                    </td>
+
+                    <td>
+                      {student.department ||
+                        "-"}
+                    </td>
+
+                    <td>
+                      {student.industry ||
+                        "-"}
+                    </td>
+
+                    <td>
+                      {student.work_modes ||
+                        "-"}
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+if (
+  activePage === "supervision" &&
+  role === "advisor"
+) {
+  return (
+    <div className="panel">
+      <div className="panel-header">
+        <div>
+          <div className="panel-title">
+            ประวัติการนิเทศ
+          </div>
+
+          <div className="panel-description">
+            GET /teacher/supervisions
+          </div>
+        </div>
+
+        <button
+          className="secondary-button"
+          onClick={loadTeacherData}
+        >
+          <RefreshCw size={16} />
+          รีเฟรช
+        </button>
+      </div>
+
+      {teacherSupervisions.length === 0 ? (
+        <div className="empty-state">
+          <ClipboardList size={40} />
+          ยังไม่มีข้อมูลการนิเทศ
+        </div>
+      ) : (
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>นักศึกษา</th>
+                <th>บริษัท</th>
+                <th>อุตสาหกรรม</th>
+                <th>ประเภท</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {teacherSupervisions.map(
+                (item, index) => (
+                  <tr key={index}>
+                    <td>
+                      {formatDate(item.date)}
+                    </td>
+
+                    <td>
+                      {item.student_id}
+                      <br />
+                      {
+                        item.student_first_name
+                      }{" "}
+                      {
+                        item.student_last_name
+                      }
+                    </td>
+
+                    <td>
+                      {item.company_name}
+                    </td>
+
+                    <td>
+                      {item.industry}
+                    </td>
+
+                    <td>
+                      {item.type}
+                    </td>
+
+                    <td>
+                      <span
+                        className={`status ${statusClass(
+                          item.status
+                        )}`}
+                      >
+                        {statusText(
+                          item.status
+                        )}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+return (
+  <div className="panel">
+    <div className="empty-state">
+      <AlertCircle size={40} />
+      <div>
+        ไม่พบหน้าที่ต้องการ
+      </div>
+    </div>
+  </div>
+);
+```
+
+};
+
+// ==========================================================
+// LOGIN
+// ==========================================================
+
+if (!loggedIn) {
+return (
+<> <style>{styles}</style>
+
+```
+    <LoginPage
+      onLogin={handleLoginSuccess}
+    />
+  </>
+);
+```
+
+}
+
+// ==========================================================
+// APP
+// ==========================================================
+
+return (
+<> <style>{styles}</style>
+
+```
+  <div className="app-shell">
+    <aside
+      className={`sidebar ${
+        sidebarOpen ? "open" : ""
+      }`}
+    >
+      <div className="brand">
+        <div className="brand-title">
+          Coop Education
+        </div>
+
+        <div className="brand-subtitle">
+          ระบบจัดการสหกิจศึกษา
+        </div>
+      </div>
+
+      <div className="sidebar-menu">
+        <div className="menu-title">
+          MENU
+        </div>
+
+        {currentMenus.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <button
+              key={item.key}
+              className={`menu-button ${
+                activePage === item.key
+                  ? "active"
+                  : ""
+              }`}
+              onClick={() => {
+                setActivePage(item.key);
+                setSidebarOpen(false);
+                setError("");
+              }}
+            >
+              <Icon size={18} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="sidebar-footer">
+        <div className="user-mini">
+          <div className="user-mini-avatar">
+            <User size={19} />
+          </div>
+
+          <div className="user-mini-info">
+            <div className="user-mini-name">
+              {role === "student"
+                ? `${profile?.first_name || ""} ${
+                    profile?.last_name || ""
+                  }`
+                : role === "advisor"
+                ? `${teacherProfile?.first_name || ""} ${
+                    teacherProfile?.last_name || ""
+                  }`
+                : username}
+            </div>
+
+            <div className="user-mini-role">
+              {role === "student"
+                ? "Student"
+                : role === "advisor"
+                ? "Teacher"
+                : "Admin"}
+            </div>
+          </div>
+        </div>
+
+        <button
+          className="logout-button"
+          onClick={logout}
+        >
+          <LogOut size={16} />
+          ออกจากระบบ
+        </button>
+      </div>
+    </aside>
+
+    <main className="main-area">
+      <header className="topbar">
+        <div className="topbar-left">
+          <button
+            className="mobile-menu-button"
+            onClick={() =>
+              setSidebarOpen(!sidebarOpen)
+            }
+          >
+            <Menu size={23} />
+          </button>
+
+          <div>
+            <div className="page-title">
+              {pageTitles[activePage] ||
+                currentMenu.label}
+            </div>
+
+            <div className="page-subtitle">
+              Cooperative Education Management
+            </div>
+          </div>
+        </div>
+
+        <div className="top-user">
+          <div>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                textAlign: "right",
+              }}
+            >
+              {username}
+            </div>
+
+            <div
+              style={{
+                fontSize: 12,
+                color: "#777",
+                textAlign: "right",
+              }}
+            >
+              {role === "student"
+                ? "นักศึกษา"
+                : role === "advisor"
+                ? "อาจารย์"
+                : "ผู้ดูแลระบบ"}
+            </div>
+          </div>
+
+          <div className="top-avatar">
+            <User size={20} />
+          </div>
+        </div>
+      </header>
+
+      <section className="content">
+        {error && (
+          <div className="alert-box alert-error">
+            <AlertCircle size={18} />
+            <div style={{ flex: 1 }}>
+              {error}
+            </div>
+
+            <button
+              style={{
+                border: 0,
+                background: "transparent",
+                color: "inherit",
+              }}
+              onClick={() =>
+                setError("")
+              }
+            >
+              <X size={17} />
+            </button>
+          </div>
+        )}
+
+        {renderPage()}
+      </section>
+    </main>
+  </div>
+</>
+```
+
+);
+}
 
 export default MainAppContainer;
