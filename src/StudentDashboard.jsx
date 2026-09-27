@@ -18,16 +18,11 @@ XCircle,
 MapPin,
 BriefcaseBusiness,
 GraduationCap,
-Phone,
-Mail,
-CalendarDays,
 ClipboardList,
 ShieldCheck,
 Upload,
-Eye,
 Trash2,
 Menu,
-ChevronDown,
 AlertCircle,
 } from "lucide-react";
 
@@ -48,13 +43,14 @@ api.interceptors.request.use(
 (config) => {
 const token = localStorage.getItem("token");
 
-
+```
 if (token) {
+  config.headers = config.headers || {};
   config.headers.Authorization = `Bearer ${token}`;
 }
 
 return config;
-
+```
 
 },
 (error) => Promise.reject(error)
@@ -72,9 +68,9 @@ return error.response.data.detail
 .join(", ");
 }
 
-
+```
 return String(error.response.data.detail);
-
+```
 
 }
 
@@ -118,7 +114,7 @@ switch (String(status || "").toLowerCase()) {
 case "approved":
 return "อนุมัติแล้ว";
 
-
+```
 case "pending":
   return "รออนุมัติ";
 
@@ -127,7 +123,7 @@ case "rejected":
 
 default:
   return status || "-";
-
+```
 
 }
 };
@@ -137,7 +133,7 @@ switch (String(status || "").toLowerCase()) {
 case "approved":
 return "status-approved";
 
-
+```
 case "pending":
   return "status-pending";
 
@@ -146,7 +142,7 @@ case "rejected":
 
 default:
   return "status-default";
-
+```
 
 }
 };
@@ -959,7 +955,7 @@ const [error, setError] = useState("");
 const handleSubmit = async (event) => {
 event.preventDefault();
 
-
+```
 setError("");
 
 if (!username.trim() || !password.trim()) {
@@ -990,7 +986,10 @@ try {
   }
 
   localStorage.setItem("token", token);
-  localStorage.setItem("username", data.username || username.trim());
+  localStorage.setItem(
+    "username",
+    data.username || username.trim()
+  );
   localStorage.setItem("backendRole", backendRole);
 
   let frontendRole = "student";
@@ -1005,18 +1004,24 @@ try {
 
   localStorage.setItem("userRole", frontendRole);
 
-  onLogin(frontendRole, data.username || username.trim());
+  onLogin(
+    frontendRole,
+    data.username || username.trim()
+  );
 } catch (error) {
-  setError(getErrorMessage(error, "เข้าสู่ระบบไม่สำเร็จ"));
+  setError(
+    getErrorMessage(error, "เข้าสู่ระบบไม่สำเร็จ")
+  );
 } finally {
   setLoading(false);
 }
-
+```
 
 };
 
 return ( <div className="login-page"> <div className="login-card"> <div className="login-logo"> <GraduationCap size={31} /> </div>
 
+```
     <div className="login-title">
       Coop Education
     </div>
@@ -1032,7 +1037,10 @@ return ( <div className="login-page"> <div className="login-card"> <div classNam
       </div>
     )}
 
-    <form className="login-form" onSubmit={handleSubmit}>
+    <form
+      className="login-form"
+      onSubmit={handleSubmit}
+    >
       <div className="form-group">
         <label className="form-label">
           Username
@@ -1041,7 +1049,9 @@ return ( <div className="login-page"> <div className="login-card"> <div classNam
         <input
           className="form-input"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) =>
+            setUsername(e.target.value)
+          }
           placeholder="กรอก Username"
           autoComplete="username"
         />
@@ -1056,7 +1066,9 @@ return ( <div className="login-page"> <div className="login-card"> <div classNam
           className="form-input"
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
           placeholder="กรอก Password"
           autoComplete="current-password"
         />
@@ -1070,11 +1082,19 @@ return ( <div className="login-page"> <div className="login-card"> <div classNam
         <select
           className="form-select"
           value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
+          onChange={(e) =>
+            setSelectedRole(e.target.value)
+          }
         >
-          <option value="student">นักศึกษา</option>
-          <option value="advisor">อาจารย์</option>
-          <option value="coordinator">ผู้ประสานงาน / Admin</option>
+          <option value="student">
+            นักศึกษา
+          </option>
+          <option value="advisor">
+            อาจารย์
+          </option>
+          <option value="coordinator">
+            ผู้ประสานงาน / Admin
+          </option>
         </select>
       </div>
 
@@ -1083,7 +1103,9 @@ return ( <div className="login-page"> <div className="login-card"> <div classNam
         type="submit"
         disabled={loading}
       >
-        {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+        {loading
+          ? "กำลังเข้าสู่ระบบ..."
+          : "เข้าสู่ระบบ"}
       </button>
     </form>
 
@@ -1099,7 +1121,7 @@ return ( <div className="login-page"> <div className="login-card"> <div classNam
     </div>
   </div>
 </div>
-
+```
 
 );
 }
@@ -1119,7 +1141,8 @@ onNavigate,
 }) {
 const studentApplications = applications.filter(
 (application) =>
-Number(application.student_id) === Number(profile?.id)
+Number(application.student_id) ===
+Number(profile?.id)
 );
 
 const approved = studentApplications.filter(
@@ -1135,9 +1158,14 @@ const rejected = studentApplications.filter(
 ).length;
 
 return (
-<> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">สมัครทั้งหมด</div> <div className="stat-number">
-{studentApplications.length} </div> </div>
+<> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">
+สมัครทั้งหมด </div>
 
+```
+        <div className="stat-number">
+          {studentApplications.length}
+        </div>
+      </div>
 
       <div className="stat-icon">
         <FileText size={23} />
@@ -1146,7 +1174,10 @@ return (
 
     <div className="stat-card">
       <div className="stat-left">
-        <div className="stat-label">รออนุมัติ</div>
+        <div className="stat-label">
+          รออนุมัติ
+        </div>
+
         <div className="stat-number">
           {pending}
         </div>
@@ -1159,7 +1190,10 @@ return (
 
     <div className="stat-card">
       <div className="stat-left">
-        <div className="stat-label">อนุมัติแล้ว</div>
+        <div className="stat-label">
+          อนุมัติแล้ว
+        </div>
+
         <div className="stat-number">
           {approved}
         </div>
@@ -1172,7 +1206,10 @@ return (
 
     <div className="stat-card">
       <div className="stat-left">
-        <div className="stat-label">ไม่อนุมัติ</div>
+        <div className="stat-label">
+          ไม่อนุมัติ
+        </div>
+
         <div className="stat-number">
           {rejected}
         </div>
@@ -1218,35 +1255,61 @@ return (
         </div>
 
         <div className="profile-role">
-          รหัสนักศึกษา: {profile?.student_id || "-"}
+          รหัสนักศึกษา:{" "}
+          {profile?.student_id || "-"}
         </div>
       </div>
     </div>
 
     <div className="form-grid">
       <div className="form-group">
-        <label className="form-label">คณะ</label>
-        <div>{profile?.faculty || "-"}</div>
+        <label className="form-label">
+          คณะ
+        </label>
+
+        <div>
+          {profile?.faculty || "-"}
+        </div>
       </div>
 
       <div className="form-group">
-        <label className="form-label">สาขา</label>
-        <div>{profile?.major || "-"}</div>
+        <label className="form-label">
+          สาขา
+        </label>
+
+        <div>
+          {profile?.major || "-"}
+        </div>
       </div>
 
       <div className="form-group">
-        <label className="form-label">อีเมล</label>
-        <div>{profile?.email || "-"}</div>
+        <label className="form-label">
+          อีเมล
+        </label>
+
+        <div>
+          {profile?.email || "-"}
+        </div>
       </div>
 
       <div className="form-group">
-        <label className="form-label">เบอร์โทรศัพท์</label>
-        <div>{profile?.phone || "-"}</div>
+        <label className="form-label">
+          เบอร์โทรศัพท์
+        </label>
+
+        <div>
+          {profile?.phone || "-"}
+        </div>
       </div>
 
       <div className="form-group">
-        <label className="form-label">ภาคการศึกษา</label>
-        <div>{profile?.semester || "-"}</div>
+        <label className="form-label">
+          ภาคการศึกษา
+        </label>
+
+        <div>
+          {profile?.semester || "-"}
+        </div>
       </div>
     </div>
   </div>
@@ -1267,16 +1330,23 @@ return (
     {teacher.length === 0 ? (
       <div className="empty-state">
         <Users size={40} />
-        <div>ยังไม่พบข้อมูลอาจารย์ผู้ดูแล</div>
+        <div>
+          ยังไม่พบข้อมูลอาจารย์ผู้ดูแล
+        </div>
       </div>
     ) : (
       <div className="company-grid">
         {teacher.map((item, index) => (
-          <div className="teacher-card" key={item.id || index}>
+          <div
+            className="teacher-card"
+            key={item.id || index}
+          >
             <div className="teacher-name">
               {item.teacher_name ||
                 item.name ||
-                `${item.first_name || ""} ${item.last_name || ""}`}
+                `${item.first_name || ""} ${
+                  item.last_name || ""
+                }`}
             </div>
 
             {item.company_name && (
@@ -1304,7 +1374,9 @@ return (
     <div style={{ marginTop: 18 }}>
       <button
         className="primary-button"
-        onClick={() => onNavigate("company")}
+        onClick={() =>
+          onNavigate("company")
+        }
       >
         <Building2 size={17} />
         ดูสถานประกอบการ
@@ -1312,7 +1384,7 @@ return (
     </div>
   </div>
 </>
-
+```
 
 );
 }
@@ -1342,17 +1414,20 @@ const [error, setError] = useState("");
 useEffect(() => {
 if (!profile) return;
 
-
+```
 setForm({
   first_name: profile.first_name || "",
   last_name: profile.last_name || "",
   faculty: profile.faculty || "",
   major: profile.major || "",
-  username: profile.username || profile.student_id || "",
+  username:
+    profile.username ||
+    profile.student_id ||
+    "",
   phone: profile.phone || "",
   semester: profile.semester || "",
 });
-
+```
 
 }, [profile]);
 
@@ -1369,10 +1444,15 @@ setSaving(true);
 setMessage("");
 setError("");
 
+```
+  const response = await api.put(
+    "/student/me",
+    form
+  );
 
-  const response = await api.put("/student/me", form);
-
-  setMessage("บันทึกข้อมูลเรียบร้อยแล้ว");
+  setMessage(
+    "บันทึกข้อมูลเรียบร้อยแล้ว"
+  );
 
   if (onSaved) {
     onSaved(response.data);
@@ -1387,14 +1467,14 @@ setError("");
 } finally {
   setSaving(false);
 }
-
+```
 
 };
 
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 แก้ไขข้อมูลนักศึกษา </div>
 
-
+```
       <div className="panel-description">
         PUT /student/me
       </div>
@@ -1419,67 +1499,103 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
 
   <div className="form-grid">
     <div className="form-group">
-      <label className="form-label">ชื่อ</label>
+      <label className="form-label">
+        ชื่อ
+      </label>
+
       <input
         className="form-input"
         value={form.first_name}
         onChange={(e) =>
-          handleChange("first_name", e.target.value)
+          handleChange(
+            "first_name",
+            e.target.value
+          )
         }
       />
     </div>
 
     <div className="form-group">
-      <label className="form-label">นามสกุล</label>
+      <label className="form-label">
+        นามสกุล
+      </label>
+
       <input
         className="form-input"
         value={form.last_name}
         onChange={(e) =>
-          handleChange("last_name", e.target.value)
+          handleChange(
+            "last_name",
+            e.target.value
+          )
         }
       />
     </div>
 
     <div className="form-group">
-      <label className="form-label">คณะ</label>
+      <label className="form-label">
+        คณะ
+      </label>
+
       <input
         className="form-input"
         value={form.faculty}
         onChange={(e) =>
-          handleChange("faculty", e.target.value)
+          handleChange(
+            "faculty",
+            e.target.value
+          )
         }
       />
     </div>
 
     <div className="form-group">
-      <label className="form-label">สาขา</label>
+      <label className="form-label">
+        สาขา
+      </label>
+
       <input
         className="form-input"
         value={form.major}
         onChange={(e) =>
-          handleChange("major", e.target.value)
+          handleChange(
+            "major",
+            e.target.value
+          )
         }
       />
     </div>
 
     <div className="form-group">
-      <label className="form-label">Username</label>
+      <label className="form-label">
+        Username
+      </label>
+
       <input
         className="form-input"
         value={form.username}
         onChange={(e) =>
-          handleChange("username", e.target.value)
+          handleChange(
+            "username",
+            e.target.value
+          )
         }
       />
     </div>
 
     <div className="form-group">
-      <label className="form-label">เบอร์โทรศัพท์</label>
+      <label className="form-label">
+        เบอร์โทรศัพท์
+      </label>
+
       <input
         className="form-input"
         value={form.phone}
         onChange={(e) =>
-          handleChange("phone", e.target.value)
+          handleChange(
+            "phone",
+            e.target.value
+          )
         }
       />
     </div>
@@ -1493,7 +1609,10 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
         className="form-input"
         value={form.semester}
         onChange={(e) =>
-          handleChange("semester", e.target.value)
+          handleChange(
+            "semester",
+            e.target.value
+          )
         }
       />
     </div>
@@ -1506,11 +1625,13 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
       disabled={saving}
     >
       <Save size={17} />
-      {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+      {saving
+        ? "กำลังบันทึก..."
+        : "บันทึกข้อมูล"}
     </button>
   </div>
 </div>
-
+```
 
 );
 }
@@ -1530,7 +1651,8 @@ const [search, setSearch] = useState("");
 const [county, setCounty] = useState("");
 const [industry, setIndustry] = useState("");
 const [allowance, setAllowance] = useState("");
-const [accommodation, setAccommodation] = useState("");
+const [accommodation, setAccommodation] =
+useState("");
 const [shuttle, setShuttle] = useState("");
 
 const industries = useMemo(() => {
@@ -1555,12 +1677,16 @@ companies
 
 const filteredCompanies = useMemo(() => {
 return companies.filter((company) => {
-const searchValue = search.trim().toLowerCase();
+const searchValue = search
+.trim()
+.toLowerCase();
 
-
+```
   const matchSearch =
     !searchValue ||
-    String(company.company_name || "")
+    String(
+      company.company_name || ""
+    )
       .toLowerCase()
       .includes(searchValue) ||
     String(company.address || "")
@@ -1574,20 +1700,25 @@ const searchValue = search.trim().toLowerCase();
       .includes(searchValue);
 
   const matchCounty =
-    !county || company.county === county;
+    !county ||
+    company.county === county;
 
   const matchIndustry =
-    !industry || company.industry === industry;
+    !industry ||
+    company.industry === industry;
 
   const matchAllowance =
-    !allowance || company.allowance === allowance;
+    !allowance ||
+    company.allowance === allowance;
 
   const matchAccommodation =
     !accommodation ||
-    company.accommodation === accommodation;
+    company.accommodation ===
+      accommodation;
 
   const matchShuttle =
-    !shuttle || company.shuttle === shuttle;
+    !shuttle ||
+    company.shuttle === shuttle;
 
   return (
     matchSearch &&
@@ -1598,7 +1729,7 @@ const searchValue = search.trim().toLowerCase();
     matchShuttle
   );
 });
-
+```
 
 }, [
 companies,
@@ -1613,7 +1744,7 @@ shuttle,
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 สถานประกอบการ </div>
 
-
+```
       <div className="panel-description">
         ข้อมูลจาก GET /companies
       </div>
@@ -1636,7 +1767,9 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
       <input
         className="form-input"
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) =>
+          setSearch(e.target.value)
+        }
         placeholder="ค้นหาชื่อบริษัท ที่อยู่ อุตสาหกรรม..."
       />
     </div>
@@ -1644,9 +1777,13 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
     <select
       className="form-select filter-select"
       value={county}
-      onChange={(e) => setCounty(e.target.value)}
+      onChange={(e) =>
+        setCounty(e.target.value)
+      }
     >
-      <option value="">ทุกพื้นที่</option>
+      <option value="">
+        ทุกพื้นที่
+      </option>
 
       {counties.map((item) => (
         <option key={item} value={item}>
@@ -1658,9 +1795,13 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
     <select
       className="form-select filter-select"
       value={industry}
-      onChange={(e) => setIndustry(e.target.value)}
+      onChange={(e) =>
+        setIndustry(e.target.value)
+      }
     >
-      <option value="">ทุกอุตสาหกรรม</option>
+      <option value="">
+        ทุกอุตสาหกรรม
+      </option>
 
       {industries.map((item) => (
         <option key={item} value={item}>
@@ -1672,9 +1813,13 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
     <select
       className="form-select filter-select"
       value={allowance}
-      onChange={(e) => setAllowance(e.target.value)}
+      onChange={(e) =>
+        setAllowance(e.target.value)
+      }
     >
-      <option value="">เบี้ยเลี้ยงทั้งหมด</option>
+      <option value="">
+        เบี้ยเลี้ยงทั้งหมด
+      </option>
       <option value="มี">มี</option>
       <option value="ไม่มี">ไม่มี</option>
     </select>
@@ -1686,7 +1831,9 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
         setAccommodation(e.target.value)
       }
     >
-      <option value="">ที่พักทั้งหมด</option>
+      <option value="">
+        ที่พักทั้งหมด
+      </option>
       <option value="มี">มี</option>
       <option value="ไม่มี">ไม่มี</option>
     </select>
@@ -1694,9 +1841,13 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
     <select
       className="form-select filter-select"
       value={shuttle}
-      onChange={(e) => setShuttle(e.target.value)}
+      onChange={(e) =>
+        setShuttle(e.target.value)
+      }
     >
-      <option value="">รถรับส่งทั้งหมด</option>
+      <option value="">
+        รถรับส่งทั้งหมด
+      </option>
       <option value="มี">มี</option>
       <option value="ไม่มี">ไม่มี</option>
     </select>
@@ -1710,73 +1861,84 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
   ) : filteredCompanies.length === 0 ? (
     <div className="empty-state">
       <Building2 size={42} />
-      <div>ไม่พบสถานประกอบการ</div>
+      <div>
+        ไม่พบสถานประกอบการ
+      </div>
     </div>
   ) : (
     <div className="company-grid">
-      {filteredCompanies.map((company) => (
-        <div
-          className="company-card"
-          key={company.id}
-        >
-          <div className="company-name">
-            {company.company_name || "-"}
+      {filteredCompanies.map(
+        (company) => (
+          <div
+            className="company-card"
+            key={company.id}
+          >
+            <div className="company-name">
+              {company.company_name ||
+                "-"}
+            </div>
+
+            <div className="company-line">
+              <MapPin size={16} />
+              <span>
+                {company.address || "-"}
+              </span>
+            </div>
+
+            <div className="company-line">
+              <BriefcaseBusiness size={16} />
+              <span>
+                {company.industry || "-"}
+              </span>
+            </div>
+
+            <div className="company-line">
+              <MapPin size={16} />
+              <span>
+                {company.county || "-"}
+              </span>
+            </div>
+
+            <div className="company-tags">
+              <span className="company-tag">
+                เบี้ยเลี้ยง:{" "}
+                {company.allowance || "-"}
+              </span>
+
+              <span className="company-tag">
+                ที่พัก:{" "}
+                {company.accommodation ||
+                  "-"}
+              </span>
+
+              <span className="company-tag">
+                รถรับส่ง:{" "}
+                {company.shuttle || "-"}
+              </span>
+            </div>
+
+            {role === "student" && (
+              <button
+                className="primary-button"
+                style={{
+                  width: "100%",
+                  marginTop: 15,
+                }}
+                onClick={() =>
+                  onApply(company)
+                }
+              >
+                <FileText size={16} />
+                สมัครสถานประกอบการ
+              </button>
+            )}
           </div>
-
-          <div className="company-line">
-            <MapPin size={16} />
-            <span>
-              {company.address || "-"}
-            </span>
-          </div>
-
-          <div className="company-line">
-            <BriefcaseBusiness size={16} />
-            <span>
-              {company.industry || "-"}
-            </span>
-          </div>
-
-          <div className="company-line">
-            <MapPin size={16} />
-            <span>
-              {company.county || "-"}
-            </span>
-          </div>
-
-          <div className="company-tags">
-            <span className="company-tag">
-              เบี้ยเลี้ยง: {company.allowance || "-"}
-            </span>
-
-            <span className="company-tag">
-              ที่พัก: {company.accommodation || "-"}
-            </span>
-
-            <span className="company-tag">
-              รถรับส่ง: {company.shuttle || "-"}
-            </span>
-          </div>
-
-          {role === "student" && (
-            <button
-              className="primary-button"
-              style={{
-                width: "100%",
-                marginTop: 15,
-              }}
-              onClick={() => onApply(company)}
-            >
-              <FileText size={16} />
-              สมัครสถานประกอบการ
-            </button>
-          )}
-        </div>
-      ))}
+        )
+      )}
     </div>
   )}
 </div>
-
+```
 
 );
 }
@@ -1798,35 +1960,36 @@ onReject,
 const studentMap = useMemo(() => {
 const map = {};
 
-
+```
 students.forEach((student) => {
   map[student.id] = student;
 });
 
 return map;
-
+```
 
 }, [students]);
 
 const companyMap = useMemo(() => {
 const map = {};
 
-
+```
 companies.forEach((company) => {
   map[company.id] = company;
 });
 
 return map;
-
+```
 
 }, [companies]);
 
-const displayApplications = applications;
+const displayApplications =
+applications;
 
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 รายการสมัครสถานประกอบการ </div>
 
-
+```
       <div className="panel-description">
         ข้อมูลจาก GET /applications
       </div>
@@ -1847,10 +2010,13 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
       <div className="spinner" />
       กำลังโหลดใบสมัคร...
     </div>
-  ) : displayApplications.length === 0 ? (
+  ) : displayApplications.length ===
+    0 ? (
     <div className="empty-state">
       <FileText size={42} />
-      <div>ยังไม่มีรายการสมัคร</div>
+      <div>
+        ยังไม่มีรายการสมัคร
+      </div>
     </div>
   ) : (
     <div className="table-wrap">
@@ -1861,6 +2027,7 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
             <th>นักศึกษา</th>
             <th>สถานประกอบการ</th>
             <th>สถานะ</th>
+
             {role === "coordinator" && (
               <th>จัดการ</th>
             )}
@@ -1868,103 +2035,129 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
         </thead>
 
         <tbody>
-          {displayApplications.map((application) => {
-            const student =
-              studentMap[application.student_id];
+          {displayApplications.map(
+            (application) => {
+              const student =
+                studentMap[
+                  application.student_id
+                ];
 
-            const company =
-              companyMap[application.company_id];
+              const company =
+                companyMap[
+                  application.company_id
+                ];
 
-            return (
-              <tr key={application.id}>
-                <td>
-                  #{application.id}
-                </td>
+              return (
+                <tr
+                  key={application.id}
+                >
+                  <td>
+                    #{application.id}
+                  </td>
 
-                <td>
-                  {student ? (
-                    <>
-                      <div style={{ fontWeight: 600 }}>
-                        {student.first_name}{" "}
-                        {student.last_name}
-                      </div>
+                  <td>
+                    {student ? (
+                      <>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                          }}
+                        >
+                          {
+                            student.first_name
+                          }{" "}
+                          {
+                            student.last_name
+                          }
+                        </div>
 
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: "#777",
+                          }}
+                        >
+                          {
+                            student.student_id
+                          }
+                        </div>
+                      </>
+                    ) : (
+                      `Student ID: ${application.student_id}`
+                    )}
+                  </td>
+
+                  <td>
+                    {company?.company_name ||
+                      `Company ID: ${application.company_id}`}
+                  </td>
+
+                  <td>
+                    <span
+                      className={`status ${statusClass(
+                        application.status
+                      )}`}
+                    >
+                      {statusText(
+                        application.status
+                      )}
+                    </span>
+                  </td>
+
+                  {role === "coordinator" && (
+                    <td>
                       <div
                         style={{
-                          fontSize: 12,
-                          color: "#777",
+                          display: "flex",
+                          gap: 7,
                         }}
                       >
-                        {student.student_id}
+                        {application.status !==
+                          "approved" && (
+                          <button
+                            className="primary-button"
+                            onClick={() =>
+                              onApprove(
+                                application.id
+                              )
+                            }
+                          >
+                            <CheckCircle2
+                              size={15}
+                            />
+                            อนุมัติ
+                          </button>
+                        )}
+
+                        {application.status !==
+                          "rejected" && (
+                          <button
+                            className="danger-button"
+                            onClick={() =>
+                              onReject(
+                                application.id
+                              )
+                            }
+                          >
+                            <XCircle
+                              size={15}
+                            />
+                            ปฏิเสธ
+                          </button>
+                        )}
                       </div>
-                    </>
-                  ) : (
-                    `Student ID: ${application.student_id}`
+                    </td>
                   )}
-                </td>
-
-                <td>
-                  {company?.company_name ||
-                    `Company ID: ${application.company_id}`}
-                </td>
-
-                <td>
-                  <span
-                    className={`status ${statusClass(
-                      application.status
-                    )}`}
-                  >
-                    {statusText(
-                      application.status
-                    )}
-                  </span>
-                </td>
-
-                {role === "coordinator" && (
-                  <td>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 7,
-                      }}
-                    >
-                      {application.status !==
-                        "approved" && (
-                        <button
-                          className="primary-button"
-                          onClick={() =>
-                            onApprove(application.id)
-                          }
-                        >
-                          <CheckCircle2 size={15} />
-                          อนุมัติ
-                        </button>
-                      )}
-
-                      {application.status !==
-                        "rejected" && (
-                        <button
-                          className="danger-button"
-                          onClick={() =>
-                            onReject(application.id)
-                          }
-                        >
-                          <XCircle size={15} />
-                          ปฏิเสธ
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                )}
-              </tr>
-            );
-          })}
+                </tr>
+              );
+            }
+          )}
         </tbody>
       </table>
     </div>
   )}
 </div>
-
+```
 
 );
 }
@@ -1980,7 +2173,8 @@ teacherDashboard,
 teacherSupervisions,
 onRefresh,
 }) {
-const [editing, setEditing] = useState(false);
+const [editing, setEditing] =
+useState(false);
 
 const [form, setForm] = useState({
 username: "",
@@ -1991,22 +2185,32 @@ email: "",
 role: "teacher",
 });
 
-const [saving, setSaving] = useState(false);
-const [message, setMessage] = useState("");
-const [error, setError] = useState("");
+const [saving, setSaving] =
+useState(false);
+
+const [message, setMessage] =
+useState("");
+
+const [error, setError] =
+useState("");
 
 useEffect(() => {
 if (!teacherProfile) return;
 
-
+```
 setForm({
-  username: teacherProfile.username || "",
+  username:
+    teacherProfile.username || "",
   rank: teacherProfile.rank || "",
-  first_name: teacherProfile.first_name || "",
-  last_name: teacherProfile.last_name || "",
+  first_name:
+    teacherProfile.first_name || "",
+  last_name:
+    teacherProfile.last_name || "",
   email: teacherProfile.email || "",
-  role: teacherProfile.role || "teacher",
+  role:
+    teacherProfile.role || "teacher",
 });
+```
 
 }, [teacherProfile]);
 
@@ -2016,13 +2220,19 @@ setSaving(true);
 setMessage("");
 setError("");
 
+```
+  await api.put(
+    "/teacher/me",
+    form
+  );
 
-  await api.put("/teacher/me", form);
+  setMessage(
+    "บันทึกข้อมูลอาจารย์เรียบร้อยแล้ว"
+  );
 
-  setMessage("บันทึกข้อมูลอาจารย์เรียบร้อยแล้ว");
   setEditing(false);
 
-  onRefresh();
+  await onRefresh();
 } catch (error) {
   setError(
     getErrorMessage(
@@ -2033,7 +2243,7 @@ setError("");
 } finally {
   setSaving(false);
 }
-
+```
 
 };
 
@@ -2041,7 +2251,7 @@ return (
 <> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">
 นักศึกษาที่รับผิดชอบ </div>
 
-
+```
         <div className="stat-number">
           {teacherDashboard?.students ??
             teacherStudents.length ??
@@ -2133,7 +2343,9 @@ return (
       {!editing ? (
         <button
           className="secondary-button"
-          onClick={() => setEditing(true)}
+          onClick={() =>
+            setEditing(true)
+          }
         >
           <Pencil size={16} />
           แก้ไข
@@ -2141,7 +2353,9 @@ return (
       ) : (
         <button
           className="secondary-button"
-          onClick={() => setEditing(false)}
+          onClick={() =>
+            setEditing(false)
+          }
         >
           <X size={16} />
           ยกเลิก
@@ -2152,23 +2366,32 @@ return (
     {!editing ? (
       <div className="profile-header">
         <div className="profile-avatar">
-          {(teacherProfile?.first_name || "T").charAt(0)}
+          {(
+            teacherProfile?.first_name ||
+            "T"
+          ).charAt(0)}
         </div>
 
         <div>
           <div className="profile-name">
-            {teacherProfile?.rank || ""}{" "}
-            {teacherProfile?.first_name || "-"}{" "}
-            {teacherProfile?.last_name || ""}
+            {teacherProfile?.rank ||
+              ""}{" "}
+            {teacherProfile?.first_name ||
+              "-"}{" "}
+            {teacherProfile?.last_name ||
+              ""}
           </div>
 
           <div className="profile-role">
             Username:{" "}
-            {teacherProfile?.username || "-"}
+            {teacherProfile?.username ||
+              "-"}
           </div>
 
           <div className="profile-role">
-            Email: {teacherProfile?.email || "-"}
+            Email:{" "}
+            {teacherProfile?.email ||
+              "-"}
           </div>
         </div>
       </div>
@@ -2186,7 +2409,8 @@ return (
               onChange={(e) =>
                 setForm({
                   ...form,
-                  username: e.target.value,
+                  username:
+                    e.target.value,
                 })
               }
             />
@@ -2220,7 +2444,8 @@ return (
               onChange={(e) =>
                 setForm({
                   ...form,
-                  first_name: e.target.value,
+                  first_name:
+                    e.target.value,
                 })
               }
             />
@@ -2237,7 +2462,8 @@ return (
               onChange={(e) =>
                 setForm({
                   ...form,
-                  last_name: e.target.value,
+                  last_name:
+                    e.target.value,
                 })
               }
             />
@@ -2254,7 +2480,8 @@ return (
               onChange={(e) =>
                 setForm({
                   ...form,
-                  email: e.target.value,
+                  email:
+                    e.target.value,
                 })
               }
             />
@@ -2290,7 +2517,8 @@ return (
       </div>
     </div>
 
-    {teacherStudents.length === 0 ? (
+    {teacherStudents.length ===
+    0 ? (
       <div className="empty-state">
         <Users size={40} />
         <div>
@@ -2312,16 +2540,40 @@ return (
           </thead>
 
           <tbody>
-            {teacherStudents.map((student) => (
-              <tr key={student.id}>
-                <td>{student.student_id}</td>
-                <td>{student.student_name}</td>
-                <td>{student.company_name}</td>
-                <td>{student.department || "-"}</td>
-                <td>{student.industry || "-"}</td>
-                <td>{student.work_modes || "-"}</td>
-              </tr>
-            ))}
+            {teacherStudents.map(
+              (student) => (
+                <tr
+                  key={student.id}
+                >
+                  <td>
+                    {student.student_id}
+                  </td>
+
+                  <td>
+                    {student.student_name}
+                  </td>
+
+                  <td>
+                    {student.company_name}
+                  </td>
+
+                  <td>
+                    {student.department ||
+                      "-"}
+                  </td>
+
+                  <td>
+                    {student.industry ||
+                      "-"}
+                  </td>
+
+                  <td>
+                    {student.work_modes ||
+                      "-"}
+                  </td>
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       </div>
@@ -2341,7 +2593,8 @@ return (
       </div>
     </div>
 
-    {teacherSupervisions.length === 0 ? (
+    {teacherSupervisions.length ===
+    0 ? (
       <div className="empty-state">
         <ClipboardList size={40} />
         <div>
@@ -2373,14 +2626,22 @@ return (
                   </td>
 
                   <td>
-                    {supervision.student_id}
+                    {
+                      supervision.student_id
+                    }
                     <br />
-                    {supervision.student_first_name}{" "}
-                    {supervision.student_last_name}
+                    {
+                      supervision.student_first_name
+                    }{" "}
+                    {
+                      supervision.student_last_name
+                    }
                   </td>
 
                   <td>
-                    {supervision.company_name}
+                    {
+                      supervision.company_name
+                    }
                   </td>
 
                   <td>
@@ -2411,7 +2672,7 @@ return (
     )}
   </div>
 </>
-
+```
 
 );
 }
@@ -2432,9 +2693,10 @@ return (
 <> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">
 นักศึกษาทั้งหมด </div>
 
-
+```
         <div className="stat-number">
-          {dashboard?.students ?? students.length}
+          {dashboard?.students ??
+            students.length}
         </div>
       </div>
 
@@ -2525,7 +2787,11 @@ return (
       }}
     >
       <div className="company-card">
-        <Users size={23} color="#800000" />
+        <Users
+          size={23}
+          color="#800000"
+        />
+
         <div
           style={{
             fontSize: 25,
@@ -2535,13 +2801,20 @@ return (
         >
           {students.length}
         </div>
-        <div style={{ color: "#777" }}>
+
+        <div
+          style={{ color: "#777" }}
+        >
           นักศึกษา
         </div>
       </div>
 
       <div className="company-card">
-        <Building2 size={23} color="#800000" />
+        <Building2
+          size={23}
+          color="#800000"
+        />
+
         <div
           style={{
             fontSize: 25,
@@ -2551,13 +2824,20 @@ return (
         >
           {companies.length}
         </div>
-        <div style={{ color: "#777" }}>
+
+        <div
+          style={{ color: "#777" }}
+        >
           บริษัท
         </div>
       </div>
 
       <div className="company-card">
-        <FileText size={23} color="#800000" />
+        <FileText
+          size={23}
+          color="#800000"
+        />
+
         <div
           style={{
             fontSize: 25,
@@ -2567,14 +2847,17 @@ return (
         >
           {applications.length}
         </div>
-        <div style={{ color: "#777" }}>
+
+        <div
+          style={{ color: "#777" }}
+        >
           ใบสมัคร
         </div>
       </div>
     </div>
   </div>
 </>
-
+```
 
 );
 }
@@ -2592,7 +2875,7 @@ onDelete,
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 จัดการนักศึกษา </div>
 
-
+```
       <div className="panel-description">
         GET /students
       </div>
@@ -2634,36 +2917,58 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
         </thead>
 
         <tbody>
-          {students.map((student) => (
-            <tr key={student.id}>
-              <td>{student.id}</td>
-              <td>{student.student_id}</td>
-              <td>
-                {student.first_name}{" "}
-                {student.last_name}
-              </td>
-              <td>{student.faculty}</td>
-              <td>{student.major}</td>
-              <td>{student.phone}</td>
-              <td>
-                <button
-                  className="danger-button"
-                  onClick={() =>
-                    onDelete(student.id)
-                  }
-                >
-                  <Trash2 size={15} />
-                  ลบ
-                </button>
-              </td>
-            </tr>
-          ))}
+          {students.map(
+            (student) => (
+              <tr
+                key={student.id}
+              >
+                <td>
+                  {student.id}
+                </td>
+
+                <td>
+                  {student.student_id}
+                </td>
+
+                <td>
+                  {student.first_name}{" "}
+                  {student.last_name}
+                </td>
+
+                <td>
+                  {student.faculty}
+                </td>
+
+                <td>
+                  {student.major}
+                </td>
+
+                <td>
+                  {student.phone}
+                </td>
+
+                <td>
+                  <button
+                    className="danger-button"
+                    onClick={() =>
+                      onDelete(
+                        student.id
+                      )
+                    }
+                  >
+                    <Trash2 size={15} />
+                    ลบ
+                  </button>
+                </td>
+              </tr>
+            )
+          )}
         </tbody>
       </table>
     </div>
   )}
 </div>
-
+```
 
 );
 }
@@ -2673,20 +2978,31 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
 // ============================================================
 
 function UploadPDF() {
-const [file, setFile] = useState(null);
-const [uploading, setUploading] = useState(false);
-const [result, setResult] = useState(null);
-const [error, setError] = useState("");
+const [file, setFile] =
+useState(null);
+
+const [uploading, setUploading] =
+useState(false);
+
+const [result, setResult] =
+useState(null);
+
+const [error, setError] =
+useState("");
 
 const upload = async () => {
 if (!file) {
-setError("กรุณาเลือกไฟล์ PDF");
+setError(
+"กรุณาเลือกไฟล์ PDF"
+);
 return;
 }
 
-
+```
 if (file.type !== "application/pdf") {
-  setError("สามารถอัปโหลดได้เฉพาะไฟล์ PDF");
+  setError(
+    "สามารถอัปโหลดได้เฉพาะไฟล์ PDF"
+  );
   return;
 }
 
@@ -2695,18 +3011,25 @@ try {
   setError("");
   setResult(null);
 
-  const formData = new FormData();
-  formData.append("file", file);
+  const formData =
+    new FormData();
 
-  const response = await api.post(
-    "/upload-pdf",
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
+  formData.append(
+    "file",
+    file
   );
+
+  const response =
+    await api.post(
+      "/upload-pdf",
+      formData,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
+    );
 
   setResult(response.data);
 } catch (error) {
@@ -2726,13 +3049,16 @@ try {
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 อัปโหลดเอกสาร PDF </div>
 
-
+```
       <div className="panel-description">
         POST /upload-pdf
       </div>
     </div>
 
-    <Upload size={22} color="#800000" />
+    <Upload
+      size={22}
+      color="#800000"
+    />
   </div>
 
   {error && (
@@ -2745,7 +3071,8 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
   {result && (
     <div className="alert-box alert-success">
       <CheckCircle2 size={18} />
-      อัปโหลดสำเร็จ: {result.filename}
+      อัปโหลดสำเร็จ:{" "}
+      {result.filename}
     </div>
   )}
 
@@ -2759,7 +3086,10 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
       type="file"
       accept="application/pdf,.pdf"
       onChange={(e) =>
-        setFile(e.target.files?.[0] || null)
+        setFile(
+          e.target.files?.[0] ||
+            null
+        )
       }
     />
   </div>
@@ -2771,13 +3101,14 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
       disabled={uploading}
     >
       <Upload size={16} />
+
       {uploading
         ? "กำลังอัปโหลด..."
         : "อัปโหลด PDF"}
     </button>
   </div>
 </div>
-
+```
 
 );
 }
@@ -2787,45 +3118,89 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
 // ============================================================
 
 function MainAppContainer() {
-const [loggedIn, setLoggedIn] = useState(
-Boolean(localStorage.getItem("token"))
+const [loggedIn, setLoggedIn] =
+useState(
+Boolean(
+localStorage.getItem(
+"token"
+)
+)
 );
 
-const [role, setRole] = useState(
-localStorage.getItem("userRole") || "student"
+const [role, setRole] =
+useState(
+localStorage.getItem(
+"userRole"
+) || "student"
 );
 
-const [username, setUsername] = useState(
-localStorage.getItem("username") || ""
+const [username, setUsername] =
+useState(
+localStorage.getItem(
+"username"
+) || ""
 );
 
-const [profile, setProfile] = useState(null);
-const [teacherProfile, setTeacherProfile] = useState(null);
-
-const [teacherStudents, setTeacherStudents] = useState([]);
-const [teacherDashboard, setTeacherDashboard] =
+const [profile, setProfile] =
 useState(null);
-const [teacherSupervisions, setTeacherSupervisions] =
+
+const [
+teacherProfile,
+setTeacherProfile,
+] = useState(null);
+
+const [
+teacherStudents,
+setTeacherStudents,
+] = useState([]);
+
+const [
+teacherDashboard,
+setTeacherDashboard,
+] = useState(null);
+
+const [
+teacherSupervisions,
+setTeacherSupervisions,
+] = useState([]);
+
+const [students, setStudents] =
 useState([]);
 
-const [students, setStudents] = useState([]);
-const [companies, setCompanies] = useState([]);
-const [applications, setApplications] = useState([]);
-const [adminDashboard, setAdminDashboard] =
-useState(null);
+const [companies, setCompanies] =
+useState([]);
 
-const [teacher, setTeacher] = useState([]);
+const [
+applications,
+setApplications,
+] = useState([]);
+
+const [
+adminDashboard,
+setAdminDashboard,
+] = useState(null);
+
+const [teacher, setTeacher] =
+useState([]);
 
 const [activePage, setActivePage] =
 useState("overview");
 
-const [loading, setLoading] = useState(false);
-const [pageLoading, setPageLoading] =
+const [loading, setLoading] =
 useState(false);
 
-const [error, setError] = useState("");
-const [sidebarOpen, setSidebarOpen] =
-useState(false);
+const [
+pageLoading,
+setPageLoading,
+] = useState(false);
+
+const [error, setError] =
+useState("");
+
+const [
+sidebarOpen,
+setSidebarOpen,
+] = useState(false);
 
 // ==========================================================
 // LOAD PROFILE
@@ -2834,19 +3209,32 @@ useState(false);
 const loadProfile = async () => {
 try {
 if (role === "student") {
-const response = await api.get("/student/me");
+const response =
+await api.get(
+"/student/me"
+);
 
-
-    setProfile(response.data);
+```
+    setProfile(
+      response.data
+    );
   }
 
   if (role === "advisor") {
-    const response = await api.get("/teacher/me");
+    const response =
+      await api.get(
+        "/teacher/me"
+      );
 
-    setTeacherProfile(response.data);
+    setTeacherProfile(
+      response.data
+    );
   }
 } catch (error) {
-  if (error?.response?.status === 401) {
+  if (
+    error?.response?.status ===
+    401
+  ) {
     logout();
     return;
   }
@@ -2858,7 +3246,7 @@ const response = await api.get("/student/me");
     )
   );
 }
-
+```
 
 };
 
@@ -2870,10 +3258,17 @@ const loadCompanies = async () => {
 try {
 setLoading(true);
 
+```
+  const response =
+    await api.get(
+      "/companies"
+    );
 
-  const response = await api.get("/companies");
-
-  setCompanies(normalizeArray(response.data));
+  setCompanies(
+    normalizeArray(
+      response.data
+    )
+  );
 } catch (error) {
   setError(
     getErrorMessage(
@@ -2892,44 +3287,57 @@ setLoading(true);
 // LOAD APPLICATIONS
 // ==========================================================
 
-const loadApplications = async () => {
+const loadApplications =
+async () => {
 try {
 setLoading(true);
 
+```
+    const response =
+      await api.get(
+        "/applications"
+      );
 
-  const response = await api.get("/applications");
-
-  setApplications(
-    normalizeArray(response.data)
-  );
-} catch (error) {
-  setError(
-    getErrorMessage(
-      error,
-      "ไม่สามารถโหลดข้อมูลใบสมัครได้"
-    )
-  );
-} finally {
-  setLoading(false);
-}
-
-
+    setApplications(
+      normalizeArray(
+        response.data
+      )
+    );
+  } catch (error) {
+    setError(
+      getErrorMessage(
+        error,
+        "ไม่สามารถโหลดข้อมูลใบสมัครได้"
+      )
+    );
+  } finally {
+    setLoading(false);
+  }
 };
+```
 
 // ==========================================================
 // LOAD ADMIN STUDENTS
 // ==========================================================
 
 const loadStudents = async () => {
-if (role !== "coordinator") return;
+if (role !== "coordinator")
+return;
 
-
+```
 try {
   setLoading(true);
 
-  const response = await api.get("/students");
+  const response =
+    await api.get(
+      "/students"
+    );
 
-  setStudents(normalizeArray(response.data));
+  setStudents(
+    normalizeArray(
+      response.data
+    )
+  );
 } catch (error) {
   setError(
     getErrorMessage(
@@ -2940,7 +3348,7 @@ try {
 } finally {
   setLoading(false);
 }
-
+```
 
 };
 
@@ -2948,144 +3356,171 @@ try {
 // LOAD ADMIN DASHBOARD
 // ==========================================================
 
-const loadAdminDashboard = async () => {
-if (role !== "coordinator") return;
+const loadAdminDashboard =
+async () => {
+if (role !== "coordinator")
+return;
 
-try {
-  const response = await api.get(
-    "/admin/dashboard"
-  );
+```
+  try {
+    const response =
+      await api.get(
+        "/admin/dashboard"
+      );
 
-  setAdminDashboard(response.data);
-} catch (error) {
-  setError(
-    getErrorMessage(
-      error,
-      "ไม่สามารถโหลด Admin Dashboard ได้"
-    )
-  );
-}
-
-
+    setAdminDashboard(
+      response.data
+    );
+  } catch (error) {
+    setError(
+      getErrorMessage(
+        error,
+        "ไม่สามารถโหลด Admin Dashboard ได้"
+      )
+    );
+  }
 };
+```
 
 // ==========================================================
 // LOAD STUDENT TEACHER
 // ==========================================================
 
-const loadStudentTeacher = async () => {
-if (role !== "student") return;
+const loadStudentTeacher =
+async () => {
+if (role !== "student")
+return;
 
+```
+  try {
+    const response =
+      await api.get(
+        "/student/teacher"
+      );
 
-try {
-  const response = await api.get(
-    "/student/teacher"
-  );
+    setTeacher(
+      normalizeArray(
+        response.data
+      )
+    );
+  } catch (error) {
+    if (
+      error?.response?.status !==
+      404
+    ) {
+      setError(
+        getErrorMessage(
+          error,
+          "ไม่สามารถโหลดข้อมูลอาจารย์ได้"
+        )
+      );
+    }
 
-  setTeacher(normalizeArray(response.data));
-} catch (error) {
-  // 404 means teacher may not have been assigned.
-  if (error?.response?.status !== 404) {
+    setTeacher([]);
+  }
+};
+```
+
+// ==========================================================
+// LOAD TEACHER DATA
+// ==========================================================
+
+const loadTeacherData =
+async () => {
+if (role !== "advisor")
+return;
+
+```
+  try {
+    setPageLoading(true);
+
+    const [
+      profileResponse,
+      studentsResponse,
+      dashboardResponse,
+      supervisionResponse,
+    ] = await Promise.all([
+      api.get("/teacher/me"),
+      api.get(
+        "/teacher/students"
+      ),
+      api.get(
+        "/teacher/dashboard"
+      ),
+      api.get(
+        "/teacher/supervisions"
+      ),
+    ]);
+
+    setTeacherProfile(
+      profileResponse.data
+    );
+
+    setTeacherStudents(
+      normalizeArray(
+        studentsResponse.data
+      )
+    );
+
+    setTeacherDashboard(
+      dashboardResponse.data
+    );
+
+    setTeacherSupervisions(
+      normalizeArray(
+        supervisionResponse.data
+      )
+    );
+  } catch (error) {
+    if (
+      error?.response?.status ===
+      401
+    ) {
+      logout();
+      return;
+    }
+
     setError(
       getErrorMessage(
         error,
         "ไม่สามารถโหลดข้อมูลอาจารย์ได้"
       )
     );
+  } finally {
+    setPageLoading(false);
   }
-
-  setTeacher([]);
-}
-
-
 };
-
-// ==========================================================
-// LOAD TEACHER DATA
-// ==========================================================
-
-const loadTeacherData = async () => {
-if (role !== "advisor") return;
-
-
-try {
-  setPageLoading(true);
-
-  const [
-    profileResponse,
-    studentsResponse,
-    dashboardResponse,
-    supervisionResponse,
-  ] = await Promise.all([
-    api.get("/teacher/me"),
-    api.get("/teacher/students"),
-    api.get("/teacher/dashboard"),
-    api.get("/teacher/supervisions"),
-  ]);
-
-  setTeacherProfile(profileResponse.data);
-
-  setTeacherStudents(
-    normalizeArray(studentsResponse.data)
-  );
-
-  setTeacherDashboard(
-    dashboardResponse.data
-  );
-
-  setTeacherSupervisions(
-    normalizeArray(
-      supervisionResponse.data
-    )
-  );
-} catch (error) {
-  if (error?.response?.status === 401) {
-    logout();
-    return;
-  }
-
-  setError(
-    getErrorMessage(
-      error,
-      "ไม่สามารถโหลดข้อมูลอาจารย์ได้"
-    )
-  );
-} finally {
-  setPageLoading(false);
-}
-
-
-};
+```
 
 // ==========================================================
 // LOAD ALL DATA
 // ==========================================================
 
-const loadAllData = async () => {
+const loadAllData =
+async () => {
 if (!loggedIn) return;
 
+```
+  setError("");
 
-setError("");
+  await loadProfile();
+  await loadCompanies();
+  await loadApplications();
 
-await loadProfile();
-await loadCompanies();
-await loadApplications();
+  if (role === "student") {
+    await loadStudentTeacher();
+  }
 
-if (role === "student") {
-  await loadStudentTeacher();
-}
+  if (role === "coordinator") {
+    await loadStudents();
+    await loadAdminDashboard();
+  }
 
-if (role === "coordinator") {
-  await loadStudents();
-  await loadAdminDashboard();
-}
-
-if (role === "advisor") {
-  await loadTeacherData();
-}
-
-
+  if (role === "advisor") {
+    await loadTeacherData();
+  }
 };
+```
 
 useEffect(() => {
 if (loggedIn) {
@@ -3113,11 +3548,22 @@ setError("");
 // ==========================================================
 
 const logout = () => {
-localStorage.removeItem("token");
-localStorage.removeItem("username");
-localStorage.removeItem("userRole");
-localStorage.removeItem("backendRole");
+localStorage.removeItem(
+"token"
+);
 
+```
+localStorage.removeItem(
+  "username"
+);
+
+localStorage.removeItem(
+  "userRole"
+);
+
+localStorage.removeItem(
+  "backendRole"
+);
 
 setLoggedIn(false);
 setProfile(null);
@@ -3137,7 +3583,8 @@ setTeacher([]);
 // APPLY COMPANY
 // ==========================================================
 
-const handleApplyCompany = async (company) => {
+const handleApplyCompany =
+async (company) => {
 if (!profile?.id) {
 alert(
 "ไม่พบ ID ของนักศึกษา กรุณาตรวจสอบ Student Profile"
@@ -3145,165 +3592,176 @@ alert(
 return;
 }
 
+```
+  const confirmed =
+    window.confirm(
+      `ต้องการสมัคร "${company.company_name}" หรือไม่?`
+    );
 
-const confirmed = window.confirm(
-  `ต้องการสมัคร "${company.company_name}" หรือไม่?`
-);
+  if (!confirmed) return;
 
-if (!confirmed) return;
+  try {
+    setLoading(true);
+    setError("");
 
-try {
-  setLoading(true);
-  setError("");
+    await api.post(
+      "/apply",
+      {
+        student_id:
+          Number(profile.id),
+        company_id:
+          Number(company.id),
+      }
+    );
 
-  await api.post("/apply", {
-    student_id: Number(profile.id),
-    company_id: Number(company.id),
-  });
+    alert(
+      "ส่งใบสมัครเรียบร้อยแล้ว"
+    );
 
-  alert("ส่งใบสมัครเรียบร้อยแล้ว");
+    await loadApplications();
 
-  await loadApplications();
-
-  setActivePage("applications");
-} catch (error) {
-  setError(
-    getErrorMessage(
-      error,
-      "สมัครสถานประกอบการไม่สำเร็จ"
-    )
-  );
-} finally {
-  setLoading(false);
-}
-
-
+    setActivePage(
+      "applications"
+    );
+  } catch (error) {
+    setError(
+      getErrorMessage(
+        error,
+        "สมัครสถานประกอบการไม่สำเร็จ"
+      )
+    );
+  } finally {
+    setLoading(false);
+  }
 };
+```
 
 // ==========================================================
 // APPROVE APPLICATION
 // ==========================================================
 
-const handleApproveApplication = async (
-applicationId
-) => {
-const confirmed = window.confirm(
+const handleApproveApplication =
+async (applicationId) => {
+const confirmed =
+window.confirm(
 "ยืนยันการอนุมัติใบสมัครนี้หรือไม่?"
 );
 
+```
+  if (!confirmed) return;
 
-if (!confirmed) return;
+  try {
+    setLoading(true);
 
-try {
-  setLoading(true);
+    await api.put(
+      `/applications/${applicationId}/approve`
+    );
 
-  await api.put(
-    `/applications/${applicationId}/approve`
-  );
+    await loadApplications();
+    await loadAdminDashboard();
 
-  await loadApplications();
-  await loadAdminDashboard();
-
-  alert("อนุมัติใบสมัครเรียบร้อยแล้ว");
-} catch (error) {
-  setError(
-    getErrorMessage(
-      error,
-      "ไม่สามารถอนุมัติใบสมัครได้"
-    )
-  );
-} finally {
-  setLoading(false);
-}
-
-
+    alert(
+      "อนุมัติใบสมัครเรียบร้อยแล้ว"
+    );
+  } catch (error) {
+    setError(
+      getErrorMessage(
+        error,
+        "ไม่สามารถอนุมัติใบสมัครได้"
+      )
+    );
+  } finally {
+    setLoading(false);
+  }
 };
+```
 
 // ==========================================================
 // REJECT APPLICATION
 // ==========================================================
 
-const handleRejectApplication = async (
-applicationId
-) => {
-const confirmed = window.confirm(
+const handleRejectApplication =
+async (applicationId) => {
+const confirmed =
+window.confirm(
 "ยืนยันการปฏิเสธใบสมัครนี้หรือไม่?"
 );
 
+```
+  if (!confirmed) return;
 
-if (!confirmed) return;
+  try {
+    setLoading(true);
 
-try {
-  setLoading(true);
+    await api.put(
+      `/applications/${applicationId}/reject`
+    );
 
-  await api.put(
-    `/applications/${applicationId}/reject`
-  );
+    await loadApplications();
+    await loadAdminDashboard();
 
-  await loadApplications();
-  await loadAdminDashboard();
-
-  alert("ปฏิเสธใบสมัครเรียบร้อยแล้ว");
-} catch (error) {
-  setError(
-    getErrorMessage(
-      error,
-      "ไม่สามารถปฏิเสธใบสมัครได้"
-    )
-  );
-} finally {
-  setLoading(false);
-}
-
-
+    alert(
+      "ปฏิเสธใบสมัครเรียบร้อยแล้ว"
+    );
+  } catch (error) {
+    setError(
+      getErrorMessage(
+        error,
+        "ไม่สามารถปฏิเสธใบสมัครได้"
+      )
+    );
+  } finally {
+    setLoading(false);
+  }
 };
+```
 
 // ==========================================================
 // DELETE STUDENT
 // ==========================================================
 
-const handleDeleteStudent = async (
-studentId
-) => {
-const confirmed = window.confirm(
+const handleDeleteStudent =
+async (studentId) => {
+const confirmed =
+window.confirm(
 "ยืนยันการลบนักศึกษาคนนี้หรือไม่?"
 );
 
 ```
-if (!confirmed) return;
+  if (!confirmed) return;
 
-try {
-  setLoading(true);
+  try {
+    setLoading(true);
 
-  await api.delete(
-    `/students/${studentId}`
-  );
+    await api.delete(
+      `/students/${studentId}`
+    );
 
-  await loadStudents();
-  await loadAdminDashboard();
+    await loadStudents();
+    await loadAdminDashboard();
 
-  alert("ลบนักศึกษาเรียบร้อยแล้ว");
-} catch (error) {
-  setError(
-    getErrorMessage(
-      error,
-      "ไม่สามารถลบนักศึกษาได้"
-    )
-  );
-} finally {
-  setLoading(false);
-}
-
-
+    alert(
+      "ลบนักศึกษาเรียบร้อยแล้ว"
+    );
+  } catch (error) {
+    setError(
+      getErrorMessage(
+        error,
+        "ไม่สามารถลบนักศึกษาได้"
+      )
+    );
+  } finally {
+    setLoading(false);
+  }
 };
+```
 
 // ==========================================================
 // SAVE STUDENT PROFILE
 // ==========================================================
 
-const handleStudentProfileSaved = (
-updatedProfile
-) => {
+const handleStudentProfileSaved =
+(updatedProfile) => {
 setProfile(updatedProfile);
 };
 
@@ -3340,7 +3798,7 @@ icon: Upload,
 },
 ],
 
-
+```
 advisor: [
   {
     key: "overview",
@@ -3386,15 +3844,17 @@ coordinator: [
     icon: Building2,
   },
 ],
-
+```
 
 };
 
-const currentMenus = menus[role] || menus.student;
+const currentMenus =
+menus[role] || menus.student;
 
 const currentMenu =
 currentMenus.find(
-(item) => item.key === activePage
+(item) =>
+item.key === activePage
 ) || currentMenus[0];
 
 // ==========================================================
@@ -3422,18 +3882,24 @@ return ( <div className="panel"> <div className="loading"> <div className="spinn
 );
 }
 
-
+```
 if (activePage === "overview") {
   if (role === "student") {
     return (
       <StudentOverview
         profile={profile}
-        applications={applications}
+        applications={
+          applications
+        }
         companies={companies}
         teacher={teacher}
         loading={loading}
-        onRefresh={loadAllData}
-        onNavigate={setActivePage}
+        onRefresh={
+          loadAllData
+        }
+        onNavigate={
+          setActivePage
+        }
       />
     );
   }
@@ -3441,13 +3907,21 @@ if (activePage === "overview") {
   if (role === "advisor") {
     return (
       <TeacherDashboard
-        teacherProfile={teacherProfile}
-        teacherStudents={teacherStudents}
-        teacherDashboard={teacherDashboard}
+        teacherProfile={
+          teacherProfile
+        }
+        teacherStudents={
+          teacherStudents
+        }
+        teacherDashboard={
+          teacherDashboard
+        }
         teacherSupervisions={
           teacherSupervisions
         }
-        onRefresh={loadTeacherData}
+        onRefresh={
+          loadTeacherData
+        }
       />
     );
   }
@@ -3455,12 +3929,18 @@ if (activePage === "overview") {
   if (role === "coordinator") {
     return (
       <AdminDashboard
-        dashboard={adminDashboard}
-        applications={applications}
+        dashboard={
+          adminDashboard
+        }
+        applications={
+          applications
+        }
         students={students}
         companies={companies}
         loading={loading}
-        onRefresh={loadAllData}
+        onRefresh={
+          loadAllData
+        }
       />
     );
   }
@@ -3473,32 +3953,47 @@ if (
   return (
     <StudentProfile
       profile={profile}
-      onSaved={handleStudentProfileSaved}
+      onSaved={
+        handleStudentProfileSaved
+      }
     />
   );
 }
 
-if (activePage === "company") {
+if (
+  activePage === "company"
+) {
   return (
     <CompanyManagement
       role={role}
       companies={companies}
       loading={loading}
-      onRefresh={loadCompanies}
-      onApply={handleApplyCompany}
+      onRefresh={
+        loadCompanies
+      }
+      onApply={
+        handleApplyCompany
+      }
     />
   );
 }
 
-if (activePage === "applications") {
+if (
+  activePage === "applications"
+) {
   let displayApplications =
     applications;
 
-  if (role === "student" && profile?.id) {
+  if (
+    role === "student" &&
+    profile?.id
+  ) {
     displayApplications =
       applications.filter(
         (application) =>
-          Number(application.student_id) ===
+          Number(
+            application.student_id
+          ) ===
           Number(profile.id)
       );
   }
@@ -3506,11 +4001,15 @@ if (activePage === "applications") {
   return (
     <ApplicationManagement
       role={role}
-      applications={displayApplications}
+      applications={
+        displayApplications
+      }
       students={students}
       companies={companies}
       loading={loading}
-      onRefresh={loadApplications}
+      onRefresh={
+        loadApplications
+      }
       onApprove={
         handleApproveApplication
       }
@@ -3536,8 +4035,12 @@ if (
     <AdminStudents
       students={students}
       loading={loading}
-      onRefresh={loadStudents}
-      onDelete={handleDeleteStudent}
+      onRefresh={
+        loadStudents
+      }
+      onDelete={
+        handleDeleteStudent
+      }
     />
   );
 }
@@ -3561,14 +4064,17 @@ if (
 
         <button
           className="secondary-button"
-          onClick={loadTeacherData}
+          onClick={
+            loadTeacherData
+          }
         >
           <RefreshCw size={16} />
           รีเฟรช
         </button>
       </div>
 
-      {teacherStudents.length === 0 ? (
+      {teacherStudents.length ===
+      0 ? (
         <div className="empty-state">
           <Users size={40} />
           ไม่พบข้อมูลนักศึกษา
@@ -3590,32 +4096,48 @@ if (
             <tbody>
               {teacherStudents.map(
                 (student) => (
-                  <tr key={student.id}>
+                  <tr
+                    key={
+                      student.id
+                    }
+                  >
                     <td>
-                      {student.student_id}
+                      {
+                        student.student_id
+                      }
                     </td>
 
                     <td>
-                      {student.student_name}
+                      {
+                        student.student_name
+                      }
                     </td>
 
                     <td>
-                      {student.company_name}
+                      {
+                        student.company_name
+                      }
                     </td>
 
                     <td>
-                      {student.department ||
-                        "-"}
+                      {
+                        student.department ||
+                        "-"
+                      }
                     </td>
 
                     <td>
-                      {student.industry ||
-                        "-"}
+                      {
+                        student.industry ||
+                        "-"
+                      }
                     </td>
 
                     <td>
-                      {student.work_modes ||
-                        "-"}
+                      {
+                        student.work_modes ||
+                        "-"
+                      }
                     </td>
                   </tr>
                 )
@@ -3629,7 +4151,8 @@ if (
 }
 
 if (
-  activePage === "supervision" &&
+  activePage ===
+    "supervision" &&
   role === "advisor"
 ) {
   return (
@@ -3647,16 +4170,21 @@ if (
 
         <button
           className="secondary-button"
-          onClick={loadTeacherData}
+          onClick={
+            loadTeacherData
+          }
         >
           <RefreshCw size={16} />
           รีเฟรช
         </button>
       </div>
 
-      {teacherSupervisions.length === 0 ? (
+      {teacherSupervisions.length ===
+      0 ? (
         <div className="empty-state">
-          <ClipboardList size={40} />
+          <ClipboardList
+            size={40}
+          />
           ยังไม่มีข้อมูลการนิเทศ
         </div>
       ) : (
@@ -3675,14 +4203,25 @@ if (
 
             <tbody>
               {teacherSupervisions.map(
-                (item, index) => (
-                  <tr key={index}>
+                (
+                  item,
+                  index
+                ) => (
+                  <tr
+                    key={
+                      index
+                    }
+                  >
                     <td>
-                      {formatDate(item.date)}
+                      {formatDate(
+                        item.date
+                      )}
                     </td>
 
                     <td>
-                      {item.student_id}
+                      {
+                        item.student_id
+                      }
                       <br />
                       {
                         item.student_first_name
@@ -3693,15 +4232,21 @@ if (
                     </td>
 
                     <td>
-                      {item.company_name}
+                      {
+                        item.company_name
+                      }
                     </td>
 
                     <td>
-                      {item.industry}
+                      {
+                        item.industry
+                      }
                     </td>
 
                     <td>
-                      {item.type}
+                      {
+                        item.type
+                      }
                     </td>
 
                     <td>
@@ -3730,31 +4275,35 @@ return (
   <div className="panel">
     <div className="empty-state">
       <AlertCircle size={40} />
+
       <div>
         ไม่พบหน้าที่ต้องการ
       </div>
     </div>
   </div>
 );
-
+```
 
 };
 
 // ==========================================================
-// LOGIN
+// LOGIN SCREEN
 // ==========================================================
 
 if (!loggedIn) {
 return (
-<> <style>{styles}</style>
+<> <style>
+{styles} </style>
 
-
+```
     <LoginPage
-      onLogin={handleLoginSuccess}
+      onLogin={
+        handleLoginSuccess
+      }
     />
   </>
 );
-
+```
 
 }
 
@@ -3763,13 +4312,16 @@ return (
 // ==========================================================
 
 return (
-<> <style>{styles}</style>
+<> <style>
+{styles} </style>
 
-
+```
   <div className="app-shell">
     <aside
       className={`sidebar ${
-        sidebarOpen ? "open" : ""
+        sidebarOpen
+          ? "open"
+          : ""
       }`}
     >
       <div className="brand">
@@ -3787,28 +4339,38 @@ return (
           MENU
         </div>
 
-        {currentMenus.map((item) => {
-          const Icon = item.icon;
+        {currentMenus.map(
+          (item) => {
+            const Icon =
+              item.icon;
 
-          return (
-            <button
-              key={item.key}
-              className={`menu-button ${
-                activePage === item.key
-                  ? "active"
-                  : ""
-              }`}
-              onClick={() => {
-                setActivePage(item.key);
-                setSidebarOpen(false);
-                setError("");
-              }}
-            >
-              <Icon size={18} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={item.key}
+                className={`menu-button ${
+                  activePage ===
+                  item.key
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() => {
+                  setActivePage(
+                    item.key
+                  );
+                  setSidebarOpen(
+                    false
+                  );
+                  setError("");
+                }}
+              >
+                <Icon size={18} />
+                <span>
+                  {item.label}
+                </span>
+              </button>
+            );
+          }
+        )}
       </div>
 
       <div className="sidebar-footer">
@@ -3819,11 +4381,13 @@ return (
 
           <div className="user-mini-info">
             <div className="user-mini-name">
-              {role === "student"
+              {role ===
+              "student"
                 ? `${profile?.first_name || ""} ${
                     profile?.last_name || ""
                   }`
-                : role === "advisor"
+                : role ===
+                  "advisor"
                 ? `${teacherProfile?.first_name || ""} ${
                     teacherProfile?.last_name || ""
                   }`
@@ -3831,9 +4395,11 @@ return (
             </div>
 
             <div className="user-mini-role">
-              {role === "student"
+              {role ===
+              "student"
                 ? "Student"
-                : role === "advisor"
+                : role ===
+                  "advisor"
                 ? "Teacher"
                 : "Admin"}
             </div>
@@ -3856,7 +4422,9 @@ return (
           <button
             className="mobile-menu-button"
             onClick={() =>
-              setSidebarOpen(!sidebarOpen)
+              setSidebarOpen(
+                !sidebarOpen
+              )
             }
           >
             <Menu size={23} />
@@ -3864,7 +4432,9 @@ return (
 
           <div>
             <div className="page-title">
-              {pageTitles[activePage] ||
+              {pageTitles[
+                activePage
+              ] ||
                 currentMenu.label}
             </div>
 
@@ -3880,7 +4450,8 @@ return (
               style={{
                 fontSize: 14,
                 fontWeight: 600,
-                textAlign: "right",
+                textAlign:
+                  "right",
               }}
             >
               {username}
@@ -3890,12 +4461,15 @@ return (
               style={{
                 fontSize: 12,
                 color: "#777",
-                textAlign: "right",
+                textAlign:
+                  "right",
               }}
             >
-              {role === "student"
+              {role ===
+              "student"
                 ? "นักศึกษา"
-                : role === "advisor"
+                : role ===
+                  "advisor"
                 ? "อาจารย์"
                 : "ผู้ดูแลระบบ"}
             </div>
@@ -3911,15 +4485,22 @@ return (
         {error && (
           <div className="alert-box alert-error">
             <AlertCircle size={18} />
-            <div style={{ flex: 1 }}>
+
+            <div
+              style={{
+                flex: 1,
+              }}
+            >
               {error}
             </div>
 
             <button
               style={{
                 border: 0,
-                background: "transparent",
-                color: "inherit",
+                background:
+                  "transparent",
+                color:
+                  "inherit",
               }}
               onClick={() =>
                 setError("")
@@ -3935,7 +4516,7 @@ return (
     </main>
   </div>
 </>
-
+```
 
 );
 }
