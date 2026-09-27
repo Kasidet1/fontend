@@ -13,10 +13,18 @@ import {
 const API_BASE_URL = "https://coop-backend-02.vercel.app";
 
 // สร้างตัวแปรสำหรับยิง API ทั่วไป
-const api = axios.create({ baseURL: API_BASE_URL });
+const api = axios.create({
+  baseURL: API_BASE_URL,
+});
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 });
 
@@ -562,41 +570,54 @@ const MainAppContainer = () => {
   const [fetchingUser, setFetchingUser] = useState(false);
 
   useEffect(() => {
-    if (isLoggedIn) {
-      const fetchUserProfile = async () => {
-        try {
-          setFetchingUser(true);
-          const token = localStorage.getItem('token');
-          
-          let fetchUrl = 'https://coop-backend-02.vercel.app/student/me';
-          if (userRole === 'coordinator' || userRole === 'advisor') {
-            fetchUrl = 'https://coop-backend-02.vercel.app/staff/me';
-          }
+    if (!isLoggedIn) return;
 
-          const response = await axios.get(fetchUrl, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-         
-          console.log("Raw Profile Response:", response.data);
-
-          if (Array.isArray(response.data)) {
-            setProfileData(response.data[0]);
-          } else if (response.data?.user) {
-            setProfileData(Array.isArray(response.data.user) ? response.data.user[0] : response.data.user);
-          } else {
-            setProfileData(response.data);
-          }
-        } catch (error) {
-          console.error("Error fetching profile:", error);
-          if (error.response?.status === 401) {
-            handleLogout();
-          }
-        } finally {
-          setFetchingUser(false);
-        }
-      };
-      fetchUserProfile();
+    // Backend ใช้ role: student / teacher / admin
+    // Frontend แสดงผลเป็น: student / advisor / coordinator
+    // admin ไม่มี /admin/me หรือ /staff/me ใน backend ปัจจุบัน
+    // ดังนั้น coordinator จะใช้ username จากข้อมูล login แทน
+    if (userRole === 'coordinator') {
+      setFetchingUser(false);
+      return;
     }
+
+    const fetchUserProfile = async () => {
+      try {
+        setFetchingUser(true);
+
+        let endpoint = '/student/me';
+
+        if (userRole === 'advisor') {
+          endpoint = '/teacher/me';
+        }
+
+        const response = await api.get(endpoint);
+
+        console.log("Raw Profile Response:", response.data);
+
+        if (Array.isArray(response.data)) {
+          setProfileData(response.data[0] || null);
+        } else if (response.data?.user) {
+          setProfileData(
+            Array.isArray(response.data.user)
+              ? response.data.user[0]
+              : response.data.user
+          );
+        } else {
+          setProfileData(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+
+        if (error.response?.status === 401) {
+          handleLogout();
+        }
+      } finally {
+        setFetchingUser(false);
+      }
+    };
+
+    fetchUserProfile();
   }, [isLoggedIn, userRole]);
 
   const handleLogout = () => {
@@ -607,15 +628,18 @@ const MainAppContainer = () => {
     setActiveTab('overview');
   };
 
-  const handleLoginSuccess = (role) => {
+  const handleLoginSuccess = (role, username) => {
     setUserRole(role);
+    setProfileData(username ? { username } : null);
     setIsLoggedIn(true);
   };
 
   const displayId = profileData?.student_id || profileData?.staff_id || profileData?.username || '-';
   const displayFullName = profileData?.first_name && profileData?.last_name
     ? `${profileData.first_name} ${profileData.last_name}`
-    : fetchingUser ? 'กำลังโหลด...' : 'อาจารย์ประจำวิชา / เจ้าหน้าที่';
+    : fetchingUser
+      ? 'กำลังโหลด...'
+      : profileData?.username || 'ผู้ใช้งานระบบ';
 
   if (!isLoggedIn) return <LoginPage onLogin={handleLoginSuccess} />;
 
@@ -881,15 +905,44 @@ const LoginPage = ({ onLogin }) => {
         password: String(password)
       };
       
-      const endpoint = '/login'; 
-      const response = await axios.post(`${API_BASE_URL}${endpoint}`, payload);
-      
-      const token = typeof response.data === 'string' ? response.data : response.data.access_token;
-      
-      if (token) {
+      // Backend มี endpoint /login เพียงตัวเดียว
+      // และ backend จะเป็นผู้กำหนด role ที่แท้จริง
+      const response = await api.post('/login', payload);
+
+      const token =
+        typeof response.data === 'string'
+          ? response.data
+          : response.data?.access_token;
+
+      const backendRole =
+        typeof response.data === 'object'
+          ? response.data?.role
+          : null;
+
+      const loggedInUsername =
+        typeof response.data === 'object'
+          ? response.data?.username || username
+          : username;
+
+      // แปลง role จาก backend -> role ที่ UI เดิมใช้
+      const frontendRoleMap = {
+        student: 'student',
+        teacher: 'advisor',
+        admin: 'coordinator',
+      };
+
+      const frontendRole = frontendRoleMap[backendRole];
+
+      if (token && frontendRole) {
         localStorage.setItem('token', token);
-        localStorage.setItem('userRole', role);
-        onLogin(role);
+        localStorage.setItem('userRole', frontendRole);
+        localStorage.setItem('backendRole', backendRole);
+
+        onLogin(frontendRole, loggedInUsername);
+      } else if (token && !backendRole) {
+        alert("เข้าสู่ระบบสำเร็จ แต่เซิร์ฟเวอร์ไม่ได้ส่งข้อมูลสิทธิ์ (role) กลับมา");
+      } else if (token) {
+        alert(`ไม่พบสิทธิ์ที่ระบบรองรับ: ${backendRole}`);
       } else {
         alert("ระบบได้รับข้อมูลสำเร็จ แต่ไม่พบสิทธิ์เข้าใช้งานในรูปแบบ Token");
       }
@@ -906,7 +959,6 @@ const LoginPage = ({ onLogin }) => {
         alert("ไม่สามารถเชื่อมต่อเครือข่ายเข้ากับเซิร์ฟเวอร์หลังบ้านได้");
       }
     } finally {
-      // ซ่อมจุดนี้: ลบ loading(false) ออก เหลือเพียง setLoading(false)
       setLoading(false);
     }
   };
