@@ -48,13 +48,13 @@ api.interceptors.request.use(
 (config) => {
 const token = localStorage.getItem("token");
 
-```
+
 if (token) {
   config.headers.Authorization = `Bearer ${token}`;
 }
 
 return config;
-```
+
 
 },
 (error) => Promise.reject(error)
@@ -72,9 +72,9 @@ return error.response.data.detail
 .join(", ");
 }
 
-```
+
 return String(error.response.data.detail);
-```
+
 
 }
 
@@ -118,7 +118,7 @@ switch (String(status || "").toLowerCase()) {
 case "approved":
 return "อนุมัติแล้ว";
 
-```
+
 case "pending":
   return "รออนุมัติ";
 
@@ -127,7 +127,7 @@ case "rejected":
 
 default:
   return status || "-";
-```
+
 
 }
 };
@@ -137,7 +137,7 @@ switch (String(status || "").toLowerCase()) {
 case "approved":
 return "status-approved";
 
-```
+
 case "pending":
   return "status-pending";
 
@@ -146,7 +146,7 @@ case "rejected":
 
 default:
   return "status-default";
-```
+
 
 }
 };
@@ -959,7 +959,7 @@ const [error, setError] = useState("");
 const handleSubmit = async (event) => {
 event.preventDefault();
 
-```
+
 setError("");
 
 if (!username.trim() || !password.trim()) {
@@ -1011,13 +1011,12 @@ try {
 } finally {
   setLoading(false);
 }
-```
+
 
 };
 
 return ( <div className="login-page"> <div className="login-card"> <div className="login-logo"> <GraduationCap size={31} /> </div>
 
-```
     <div className="login-title">
       Coop Education
     </div>
@@ -1100,7 +1099,7 @@ return ( <div className="login-page"> <div className="login-card"> <div classNam
     </div>
   </div>
 </div>
-```
+
 
 );
 }
@@ -1139,7 +1138,7 @@ return (
 <> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">สมัครทั้งหมด</div> <div className="stat-number">
 {studentApplications.length} </div> </div>
 
-```
+
       <div className="stat-icon">
         <FileText size={23} />
       </div>
@@ -1313,7 +1312,7 @@ return (
     </div>
   </div>
 </>
-```
+
 
 );
 }
@@ -1343,7 +1342,7 @@ const [error, setError] = useState("");
 useEffect(() => {
 if (!profile) return;
 
-```
+
 setForm({
   first_name: profile.first_name || "",
   last_name: profile.last_name || "",
@@ -1353,7 +1352,7 @@ setForm({
   phone: profile.phone || "",
   semester: profile.semester || "",
 });
-```
+
 
 }, [profile]);
 
@@ -1370,7 +1369,7 @@ setSaving(true);
 setMessage("");
 setError("");
 
-```
+
   const response = await api.put("/student/me", form);
 
   setMessage("บันทึกข้อมูลเรียบร้อยแล้ว");
@@ -1388,14 +1387,14 @@ setError("");
 } finally {
   setSaving(false);
 }
-```
+
 
 };
 
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 แก้ไขข้อมูลนักศึกษา </div>
 
-```
+
       <div className="panel-description">
         PUT /student/me
       </div>
@@ -1511,7 +1510,7 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
     </button>
   </div>
 </div>
-```
+
 
 );
 }
@@ -1558,7 +1557,7 @@ const filteredCompanies = useMemo(() => {
 return companies.filter((company) => {
 const searchValue = search.trim().toLowerCase();
 
-```
+
   const matchSearch =
     !searchValue ||
     String(company.company_name || "")
@@ -1599,7 +1598,7 @@ const searchValue = search.trim().toLowerCase();
     matchShuttle
   );
 });
-```
+
 
 }, [
 companies,
@@ -1614,7 +1613,7 @@ shuttle,
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 สถานประกอบการ </div>
 
-```
+
       <div className="panel-description">
         ข้อมูลจาก GET /companies
       </div>
@@ -1777,7 +1776,7 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
     </div>
   )}
 </div>
-```
+
 
 );
 }
@@ -1799,26 +1798,26 @@ onReject,
 const studentMap = useMemo(() => {
 const map = {};
 
-```
+
 students.forEach((student) => {
   map[student.id] = student;
 });
 
 return map;
-```
+
 
 }, [students]);
 
 const companyMap = useMemo(() => {
 const map = {};
 
-```
+
 companies.forEach((company) => {
   map[company.id] = company;
 });
 
 return map;
-```
+
 
 }, [companies]);
 
@@ -1827,7 +1826,7 @@ const displayApplications = applications;
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 รายการสมัครสถานประกอบการ </div>
 
-```
+
       <div className="panel-description">
         ข้อมูลจาก GET /applications
       </div>
@@ -1965,7 +1964,7 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
     </div>
   )}
 </div>
-```
+
 
 );
 }
@@ -1999,7 +1998,7 @@ const [error, setError] = useState("");
 useEffect(() => {
 if (!teacherProfile) return;
 
-```
+
 setForm({
   username: teacherProfile.username || "",
   rank: teacherProfile.rank || "",
@@ -2008,7 +2007,6 @@ setForm({
   email: teacherProfile.email || "",
   role: teacherProfile.role || "teacher",
 });
-```
 
 }, [teacherProfile]);
 
@@ -2018,7 +2016,7 @@ setSaving(true);
 setMessage("");
 setError("");
 
-```
+
   await api.put("/teacher/me", form);
 
   setMessage("บันทึกข้อมูลอาจารย์เรียบร้อยแล้ว");
@@ -2035,7 +2033,7 @@ setError("");
 } finally {
   setSaving(false);
 }
-```
+
 
 };
 
@@ -2043,7 +2041,7 @@ return (
 <> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">
 นักศึกษาที่รับผิดชอบ </div>
 
-```
+
         <div className="stat-number">
           {teacherDashboard?.students ??
             teacherStudents.length ??
@@ -2413,7 +2411,7 @@ return (
     )}
   </div>
 </>
-```
+
 
 );
 }
@@ -2434,7 +2432,7 @@ return (
 <> <div className="stats-grid"> <div className="stat-card"> <div className="stat-left"> <div className="stat-label">
 นักศึกษาทั้งหมด </div>
 
-```
+
         <div className="stat-number">
           {dashboard?.students ?? students.length}
         </div>
@@ -2576,7 +2574,7 @@ return (
     </div>
   </div>
 </>
-```
+
 
 );
 }
@@ -2594,7 +2592,7 @@ onDelete,
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 จัดการนักศึกษา </div>
 
-```
+
       <div className="panel-description">
         GET /students
       </div>
@@ -2665,7 +2663,7 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
     </div>
   )}
 </div>
-```
+
 
 );
 }
@@ -2686,7 +2684,7 @@ setError("กรุณาเลือกไฟล์ PDF");
 return;
 }
 
-```
+
 if (file.type !== "application/pdf") {
   setError("สามารถอัปโหลดได้เฉพาะไฟล์ PDF");
   return;
@@ -2728,7 +2726,7 @@ try {
 return ( <div className="panel"> <div className="panel-header"> <div> <div className="panel-title">
 อัปโหลดเอกสาร PDF </div>
 
-```
+
       <div className="panel-description">
         POST /upload-pdf
       </div>
@@ -2779,7 +2777,7 @@ return ( <div className="panel"> <div className="panel-header"> <div> <div class
     </button>
   </div>
 </div>
-```
+
 
 );
 }
@@ -2838,7 +2836,7 @@ try {
 if (role === "student") {
 const response = await api.get("/student/me");
 
-```
+
     setProfile(response.data);
   }
 
@@ -2860,7 +2858,7 @@ const response = await api.get("/student/me");
     )
   );
 }
-```
+
 
 };
 
@@ -2872,7 +2870,7 @@ const loadCompanies = async () => {
 try {
 setLoading(true);
 
-```
+
   const response = await api.get("/companies");
 
   setCompanies(normalizeArray(response.data));
@@ -2898,7 +2896,7 @@ const loadApplications = async () => {
 try {
 setLoading(true);
 
-```
+
   const response = await api.get("/applications");
 
   setApplications(
@@ -2914,7 +2912,7 @@ setLoading(true);
 } finally {
   setLoading(false);
 }
-```
+
 
 };
 
@@ -2925,7 +2923,7 @@ setLoading(true);
 const loadStudents = async () => {
 if (role !== "coordinator") return;
 
-```
+
 try {
   setLoading(true);
 
@@ -2942,7 +2940,7 @@ try {
 } finally {
   setLoading(false);
 }
-```
+
 
 };
 
@@ -2953,7 +2951,6 @@ try {
 const loadAdminDashboard = async () => {
 if (role !== "coordinator") return;
 
-```
 try {
   const response = await api.get(
     "/admin/dashboard"
@@ -2968,7 +2965,7 @@ try {
     )
   );
 }
-```
+
 
 };
 
@@ -2979,7 +2976,7 @@ try {
 const loadStudentTeacher = async () => {
 if (role !== "student") return;
 
-```
+
 try {
   const response = await api.get(
     "/student/teacher"
@@ -2999,7 +2996,7 @@ try {
 
   setTeacher([]);
 }
-```
+
 
 };
 
@@ -3010,7 +3007,7 @@ try {
 const loadTeacherData = async () => {
 if (role !== "advisor") return;
 
-```
+
 try {
   setPageLoading(true);
 
@@ -3056,7 +3053,7 @@ try {
 } finally {
   setPageLoading(false);
 }
-```
+
 
 };
 
@@ -3067,7 +3064,7 @@ try {
 const loadAllData = async () => {
 if (!loggedIn) return;
 
-```
+
 setError("");
 
 await loadProfile();
@@ -3086,7 +3083,7 @@ if (role === "coordinator") {
 if (role === "advisor") {
   await loadTeacherData();
 }
-```
+
 
 };
 
@@ -3121,7 +3118,7 @@ localStorage.removeItem("username");
 localStorage.removeItem("userRole");
 localStorage.removeItem("backendRole");
 
-```
+
 setLoggedIn(false);
 setProfile(null);
 setTeacherProfile(null);
@@ -3148,7 +3145,7 @@ alert(
 return;
 }
 
-```
+
 const confirmed = window.confirm(
   `ต้องการสมัคร "${company.company_name}" หรือไม่?`
 );
@@ -3179,7 +3176,7 @@ try {
 } finally {
   setLoading(false);
 }
-```
+
 
 };
 
@@ -3194,7 +3191,7 @@ const confirmed = window.confirm(
 "ยืนยันการอนุมัติใบสมัครนี้หรือไม่?"
 );
 
-```
+
 if (!confirmed) return;
 
 try {
@@ -3218,7 +3215,7 @@ try {
 } finally {
   setLoading(false);
 }
-```
+
 
 };
 
@@ -3233,7 +3230,7 @@ const confirmed = window.confirm(
 "ยืนยันการปฏิเสธใบสมัครนี้หรือไม่?"
 );
 
-```
+
 if (!confirmed) return;
 
 try {
@@ -3257,7 +3254,7 @@ try {
 } finally {
   setLoading(false);
 }
-```
+
 
 };
 
@@ -3296,7 +3293,7 @@ try {
 } finally {
   setLoading(false);
 }
-```
+
 
 };
 
@@ -3343,7 +3340,7 @@ icon: Upload,
 },
 ],
 
-```
+
 advisor: [
   {
     key: "overview",
@@ -3389,7 +3386,7 @@ coordinator: [
     icon: Building2,
   },
 ],
-```
+
 
 };
 
@@ -3425,7 +3422,7 @@ return ( <div className="panel"> <div className="loading"> <div className="spinn
 );
 }
 
-```
+
 if (activePage === "overview") {
   if (role === "student") {
     return (
@@ -3739,7 +3736,7 @@ return (
     </div>
   </div>
 );
-```
+
 
 };
 
@@ -3751,13 +3748,13 @@ if (!loggedIn) {
 return (
 <> <style>{styles}</style>
 
-```
+
     <LoginPage
       onLogin={handleLoginSuccess}
     />
   </>
 );
-```
+
 
 }
 
@@ -3768,7 +3765,7 @@ return (
 return (
 <> <style>{styles}</style>
 
-```
+
   <div className="app-shell">
     <aside
       className={`sidebar ${
@@ -3938,7 +3935,7 @@ return (
     </main>
   </div>
 </>
-```
+
 
 );
 }
