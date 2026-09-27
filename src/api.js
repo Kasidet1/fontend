@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '"https://coop-backend-02.vercel.app/student/login' 
+  baseURL: 'https://coop-backend-02.vercel.app' 
 });
 
 api.interceptors.request.use((config) => {
